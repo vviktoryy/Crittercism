@@ -24,6 +24,17 @@
         android:id="@+id/BasketButton"
         android:src="@drawable/basket"
         android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:visibility="invisible" />
+
+    <ImageButton
+        android:layout_width="40sp"
+        android:layout_height="40sp"
+        android:gravity="right"
+        android:id="@+id/CopyButton"
+        android:src="@drawable/mail"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
         android:visibility="invisible" />
 
     <ScrollView

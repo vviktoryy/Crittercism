@@ -1,10 +1,10 @@
 package com.crittercism;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -21,33 +21,17 @@ import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 import android.app.AlertDialog;
-//import java.net.HttpURLConnection;
-
 import com.crittercism.app.Crittercism;
-import com.crittercism.app.CrittercismConfig;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
-
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
-public class WorkActivity extends Activity {
+public class WorkActivity extends FragmentActivity {
     private ImageButton imageButtonError;
     private ImageButton imageButtonConsole;
     private ImageButton imageButtonOther;
@@ -61,6 +45,7 @@ public class WorkActivity extends Activity {
     private TextView textViewTransaction;
 
     private ImageButton basket_button;
+    private ImageButton copy_button;
     private TextView textTitleView;
     private RelativeLayout relativeLayout;
     private ArrayAdapter arrayAdapter;
@@ -79,6 +64,8 @@ public class WorkActivity extends Activity {
 
     private String LogString="";
     private TextView logTextView;
+
+    private LogFile logFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +134,21 @@ public class WorkActivity extends Activity {
             public void onClick(View v) {
                 LogString ="";
                 logTextView.setText(LogString);
+                if (logFile!=null) logFile.Clear();
+            }
+        });
+
+        logFile = new LogFile(context,"LogFile.txt");
+        if (logFile!=null) {LogString = logFile.Read();/*logFile.readFile();*/}
+        else {System.out.println("NOLogFile!");}
+
+        copy_button = (ImageButton) findViewById(R.id.CopyButton);
+        copy_button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                FragmentManager fm = getSupportFragmentManager();
+                CopyDialog copyDialog = new CopyDialog();
+                copyDialog.setArguments(context, LogString);
+                copyDialog.show(fm, "copy_dialog");
             }
         });
     }
@@ -154,9 +156,12 @@ public class WorkActivity extends Activity {
     private void AddToLog(String addString){
         if (LogString.length()>0){
             LogString+="\n"+addString;
+            //if (logFile!=null) logFile.Write("\n"+addString);/*logFile.writeFile("\n"+addString);*/
         } else {
             LogString=addString;
+            //if (logFile!=null) logFile.Write(addString);/*logFile.writeFile(addString);*/
         }
+        if (logFile!=null) logFile.Write(LogString);
     }
 
     private void MsgBox(String title, String message){
@@ -230,7 +235,7 @@ public class WorkActivity extends Activity {
                         //MsgBox("Missing SDK part","No getUsername: in SDK");
                         break;
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*Choose protocol*/
@@ -257,7 +262,7 @@ public class WorkActivity extends Activity {
                         //
                         break;
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -329,7 +334,7 @@ public class WorkActivity extends Activity {
                         MsgBox("Missing SDK part","No CrittercismConfig.monitorUIWebView: in SDK");
                         break;
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         //textView RESPONSES
@@ -522,7 +527,7 @@ public class WorkActivity extends Activity {
                         AddToLog("[Transactions]: Get " + parent.getContentDescription());
                         break;
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -554,7 +559,7 @@ public class WorkActivity extends Activity {
                         MsgBox("Missing SDK part","No getUsername: in SDK");
                         break;
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*Metadata*/
@@ -588,7 +593,7 @@ public class WorkActivity extends Activity {
                         Log.e("Crittercism", "Could not parse malformed JSON: '"+"{\"Game Level\":\""+n+"\"}"+"'");
                     }
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*Breadcrumbs*/
@@ -611,7 +616,7 @@ public class WorkActivity extends Activity {
                         Crittercism.leaveBreadcrumb("123");           AddToLog("[Other]: Leave: '123'");
                         break;
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*Opt-out status*/
@@ -637,7 +642,7 @@ public class WorkActivity extends Activity {
                         // else {MsgBox("OptOutStatus","is NO");}
                         break;
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -740,7 +745,7 @@ public class WorkActivity extends Activity {
                         //recurse
                         break;
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*handle exception*/
@@ -767,7 +772,7 @@ public class WorkActivity extends Activity {
                         MsgBox("Missing SDK part","No logError: in SDK");
                         break;
                 }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -794,7 +799,7 @@ public class WorkActivity extends Activity {
                 textTitleView.setText(R.string.title_error);
                 relativeLayout.setBackgroundColor(0xffefeff4);
                 basket_button.setVisibility(View.INVISIBLE);
-
+                copy_button.setVisibility(View.INVISIBLE);
                 AddErrorsView();
                 break;
             case 2:
@@ -803,7 +808,7 @@ public class WorkActivity extends Activity {
                 textTitleView.setText(R.string.title_network);
                 relativeLayout.setBackgroundColor(0xffefeff4);
                 basket_button.setVisibility(View.INVISIBLE);
-
+                copy_button.setVisibility(View.INVISIBLE);
                 AddNetworkLists();
 
                 break;
@@ -813,7 +818,7 @@ public class WorkActivity extends Activity {
                 textTitleView.setText(R.string.title_transactions);
                 relativeLayout.setBackgroundColor(0xffefeff4);
                 basket_button.setVisibility(View.INVISIBLE);
-
+                copy_button.setVisibility(View.INVISIBLE);
                 AddTransactionLists();
 
                 break;
@@ -823,7 +828,7 @@ public class WorkActivity extends Activity {
                 textTitleView.setText(R.string.title_other);
                 relativeLayout.setBackgroundColor(0xffefeff4);
                 basket_button.setVisibility(View.INVISIBLE);
-
+                copy_button.setVisibility(View.INVISIBLE);
                 AddOtherLists();
 
                 break;
@@ -833,6 +838,7 @@ public class WorkActivity extends Activity {
                 textTitleView.setText(R.string.title_console);
                 relativeLayout.setBackgroundColor(Color.WHITE);
                 basket_button.setVisibility(View.VISIBLE);
+                copy_button.setVisibility(View.VISIBLE);
                 showConsole();
                 break;
         }

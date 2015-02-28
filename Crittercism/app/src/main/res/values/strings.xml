@@ -16,4 +16,12 @@
     <string name="title_transactions">Transactions</string>
     <string name="title_other">Everything Else</string>
     <string name="title_console">Console</string>
+    <string name="title_activity_mail">MailActivity</string>
+
+    <string name="subject">Subject:</string>
+    <string name="copies">Cc/Bcc:</string>
+    <string name="new_message">New Message</string>
+    <string name="send">Send</string>
+    <string name="cancel">Cancel</string>
+    <string name="to">To:</string>
 </resources>
