@@ -1,11 +1,12 @@
 package com.crittercism;
 
 import android.content.Context;
+import android.content.Entity;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -19,9 +20,17 @@ import android.widget.TextView;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
-import android.widget.Toast;
 import android.app.AlertDialog;
 import com.crittercism.app.Crittercism;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -54,18 +63,29 @@ public class WorkActivity extends FragmentActivity {
     private LinearLayout workLayout;
     private Context context;
 
+    private String[] transArrayPunch = {"Get 100b", "Get 5Kb", "Get 7Mb",
+            "Post 100b", "Post 4Kb", "Post 3Mb",
+            "Latency 1s", "Latency 3s", "Latency 10s",
+            "Do 202", "Do 404", "Do 500"};
+    private String[] transArrayProtocol = {"HTTP", "HTTPS"};
+    private String[] transArrayConnection = {"[HttpURLConnection]","[org.apache.http.client.HttpClient]"};
+
     private String url;
-    private long bytesRead;
     private String[] action_modifier;
     private String protocol="http";
+    private int connType = 0;
     private int bytes = 1;
     private int latency =0;
     private int code = 200;
+    private int status;
 
     private String LogString="";
     private TextView logTextView;
+    private TextView responsesTextView;
 
     private LogFile logFile;
+
+    private String componentsString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +100,7 @@ public class WorkActivity extends FragmentActivity {
     private void setupViews() {
         workLayout = (LinearLayout) findViewById(R.id.workLayer);
         textTitleView = (TextView) findViewById(R.id.TextTitleView);
-        //scrollView = (ScrollView) findViewById(R.id.scrollView);
         relativeLayout=(RelativeLayout) findViewById(R.id.relativeLayout);
-        //logTextView = (TextView) findViewById(R.id.logTextView);
 
         imageButtonError = (ImageButton) findViewById(R.id.imageButtonError);
         imageButtonError.setOnClickListener(new View.OnClickListener() {
@@ -151,16 +169,13 @@ public class WorkActivity extends FragmentActivity {
                 copyDialog.show(fm, "copy_dialog");
             }
         });
+
+        responsesTextView = (TextView) findViewById(R.id.responsesTextView);
     }
 
     private void AddToLog(String addString){
-        if (LogString.length()>0){
-            LogString+="\n"+addString;
-            //if (logFile!=null) logFile.Write("\n"+addString);/*logFile.writeFile("\n"+addString);*/
-        } else {
-            LogString=addString;
-            //if (logFile!=null) logFile.Write(addString);/*logFile.writeFile(addString);*/
-        }
+        if (LogString.length()>0){  LogString+="\n"+addString;
+        } else {            LogString=addString;        }
         if (logFile!=null) logFile.Write(LogString);
     }
 
@@ -197,127 +212,43 @@ public class WorkActivity extends FragmentActivity {
         TextView textViewConnection = new TextView(context);
         ListView listViewConnection = new ListView(context);
 
-        String[] transArrayConnection = {"[URLConnection connectionWithRequest]",
-                "[URLConnection sendAsynchronousRequest]",
-                "[URLConnection sendSynchronousRequest]",
-                "[URLSession dataTask]",
-                "[URLSession downloadTask]",
-                "[URLSession dataTask:withDelegate]"};
-        //Add_ListView(textViewConnection, listViewConnection, transArrayConnection, "CHOOSE CONNECTION TYPE:");
         Add_CheckListView(textViewConnection, listViewConnection, transArrayConnection, "CHOOSE CONNECTION TYPE:");
 
-        //listViewConnection.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         listViewConnection.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
-                switch (position) {
-                    case 0://URLConnection connectionWithRequest
-                        url = "";
-                        //Crittercism.logNetworkRequest();
-                        break;
-                    case 1://URLConnection sendAsynchronousRequest
-                        url = "";
-                        //Crittercism.logNetworkRequest();
-                        break;
-                    case 2://URLConnection sendSynchronousRequest
-                        url = "";
-                        //Crittercism.logNetworkRequest();
-                        break;
-                    case 3://URLSession dataTask
-                        url = "";
-                        //MsgBox("Missing SDK part","No getUsername: in SDK");
-                        break;
-                    case 4://URLSession downloadTask
-                        url = "";
-                        //MsgBox("Missing SDK part","No getUsername: in SDK");
-                        break;
-                    case 5://URLSession dataTask:withDelegate
-                        url = "";
-                        //MsgBox("Missing SDK part","No getUsername: in SDK");
-                        break;
-                }
-                //Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+                connType = position;
+                System.out.println(connType);
             }
         });
         /*Choose protocol*/
         TextView textViewProtocol = new TextView(context);
         ListView listViewProtocol = new ListView(context);
 
-        String[] transArrayProtocol = {"HTTP", "HTTPS"};
-        //Add_ListView(textViewProtocol, listViewProtocol, transArrayProtocol, "CHOOSE PROTOCOL:");
-
         Add_CheckListView(textViewProtocol, listViewProtocol, transArrayProtocol, "CHOOSE PROTOCOL:");
-
-        //listViewProtocol.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         listViewProtocol.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
-
                 switch (position) {
                     case 0://HTTP
-                        protocol = "http";
-
-                        //
-                        break;
+                        protocol = "http";              break;
                     case 1://HTTPS
-                        protocol = "https";
-                        //
-                        break;
+                        protocol = "https";             break;
                 }
-                //Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+                System.out.println(protocol);
             }
         });
-
 
         /*Punch it*/
         TextView textViewPunch = new TextView(context);
         ListView listViewPunch = new ListView(context);
 
-        String[] transArrayPunch = {"Get 100b", "Get 5Kb", "Get 7Mb",
-                "Post 100b", "Post 4Kb", "Post 3Mb",
-                "Latency 1s", "Latency 3s", "Latency 10s",
-                "Do 202", "Do 404", "Do 500"};
         Add_ListView(textViewPunch, listViewPunch, transArrayPunch, "PUNCH IT:");
 
         listViewPunch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
-                switch (position) {
-                    case 0://Get 100b
-                        CreateNetworkAction("Get 100b");
-                        break;
-                    case 1://Get 5Kb
-                        CreateNetworkAction("Get 5Kb");
-                        break;
-                    case 2://Get 7Mb
-                        CreateNetworkAction("Get 7Mb");
-                        break;
-                    case 3://Post 100b
-                        CreateNetworkAction("Post 100b");
-                        break;
-                    case 4://Post 4Kb
-                        CreateNetworkAction("Post 4Kb");
-                        break;
-                    case 5://Post 3Mb
-                        CreateNetworkAction("Post 3Mb");
-                        break;
-                    case 6://Latency 1s
-                        CreateNetworkAction("Latency 1s");
-                        break;
-                    case 7://Latency 3s
-                        CreateNetworkAction("Latency 3s");
-                        break;
-                    case 8://Latency 10s
-                        CreateNetworkAction("Latency 10s");
-                        break;
-                    case 9://Do 202
-                        CreateNetworkAction("Do 202");
-                        break;
-                    case 10://Do 404
-                        CreateNetworkAction("Do 404");
-                        break;
-                    case 11://Do 500
-                        CreateNetworkAction("Do 500");
-                        break;
-                }
-                Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+                componentsString = transArrayPunch[position];
+                //CreateNetworkAction();
+                new Connection().execute();
+                //Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*WebViews*/
@@ -329,19 +260,23 @@ public class WorkActivity extends FragmentActivity {
 
         listViewWeb.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
-                switch (position) {
-                    case 0://WebView
-                        MsgBox("Missing SDK part","No CrittercismConfig.monitorUIWebView: in SDK");
-                        break;
-                }
-               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+                MsgBox("Missing SDK part","No CrittercismConfig.monitorUIWebView: in SDK");
             }
         });
-        //textView RESPONSES
+        /*Responses*/
+        TextView textViewResponses = new TextView(context);
+        Add_TextView(textViewResponses,"RESPONSES:");
     }
 
-    private void CreateNetworkAction(String componentsString){
-
+    /*Connect*/
+    private class Connection extends AsyncTask {
+        @Override
+        protected Object doInBackground(Object... arg0) {
+            CreateNetworkAction();
+            return null;
+        }
+    }
+    private void CreateNetworkAction(){
         action_modifier = componentsString.split(" ");
         action_modifier[0] = action_modifier[0].toLowerCase();
 
@@ -353,6 +288,7 @@ public class WorkActivity extends FragmentActivity {
             if (action_modifier[0].equals("get")) {
                 url = protocol+"://httpbin.org/bytes/"+bytes;
             }else {
+                System.out.println(protocol);
                 url = protocol+"://httpbin.org/post";
             }
         } else if (action_modifier[0].equals("latency")) {
@@ -366,117 +302,85 @@ public class WorkActivity extends FragmentActivity {
             action_modifier[0] = "get";
         }
 
-        if (action_modifier[0].equals("get")){
-
+        if (connType==0){//HttpURLConnection
             try {
                 InputStream myInputStream =null;
-                URL url_;
-                url_ = new URL(url);
+                URL url_= new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) url_.openConnection();
-                conn.setDoOutput(true);
-                //conn.setInstanceFollowRedirects(true);
-                conn.setChunkedStreamingMode(0);
+                /*conn.setInstanceFollowRedirects(true);
                 conn.setRequestProperty("Content-length", "100");
-                conn.setRequestMethod("GET");
-                //conn.setConnectTimeout(2000);
+                conn.setConnectTimeout(2000);*/
+                if (action_modifier[0].equals("post")) conn.setDoOutput(true);
+                conn.setChunkedStreamingMode(0);
+                conn.setRequestMethod(action_modifier[0].toUpperCase());
                 conn.connect();
 
-                myInputStream = conn.getInputStream();
+                if (action_modifier[0].equals("post")){
+                    OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+                    char[] buf = new char[bytes];
+                    System.out.println(action_modifier[0]+": OutputStreamWriter"+bytes);
+                    wr.write(buf);
+                    wr.flush();
+                    System.out.println(action_modifier[0]+": OutputStreamWriter");
+                }
+                //System.out.println(action_modifier[0]+": "+url);
+                status = conn.getResponseCode();
+                if(status >= HttpStatus.SC_BAD_REQUEST)
+                    myInputStream = conn.getErrorStream();
+                else
+                    myInputStream = conn.getInputStream();
 
                 BufferedReader rd = new BufferedReader(new InputStreamReader(myInputStream), 4096);
-                String line;
+                String line = "";
                 StringBuilder sbResult =  new StringBuilder();
                 while ((line = rd.readLine()) != null) {
                     sbResult.append(line);
                 }
                 rd.close();
-                //String contentOfMyInputStream = sbResult.toString();
-                System.out.println("GET: " +sbResult.toString());
-                //Log.d("POST",sbResult.toString());
+                SetResponsesText("("+status+") "+url);
             } catch (Exception e) {
-                //Log.d("POST",e.getMessage());
-                System.out.println("GET: " +e.getMessage());
+                System.out.println(action_modifier[0]+": " +e.toString());
             }
-
-
-           /* HttpClient client = new DefaultHttpClient();
-            HttpGet request = new HttpGet();
-            request.setHeader("Content-Type", "text/plain; charset=utf-8");
-
+        }else {//org.apache.http.client.HttpClient
+            HttpResponse response = null;
+            HttpClient client = new DefaultHttpClient();
             try {
-                request.setURI(new URI(url));
-                HttpResponse response = client.execute(request);
-                System.out.println("GET: " +response.toString());
-                //Log.d("GET",response.toString());
-            } catch (URISyntaxException e) {
-                //Log.d("GET",e.getMessage());
-                System.out.println("GET: " +e.getMessage());
-            }
-            catch (IOException e) {
-                //Log.d("GET",e.getMessage());
-                System.out.println("GET: " +e.getMessage());
-            }*/
-        }else if (action_modifier[0].equals("post")){
-            try {
-                InputStream myInputStream =null;
-                URL url_;
-                url_ = new URL(url);
-                HttpURLConnection conn = (HttpURLConnection) url_.openConnection();
-                conn.setDoOutput(true);
-                //conn.setInstanceFollowRedirects(true);
-                conn.setChunkedStreamingMode(0);
-                conn.setRequestProperty("Content-length", "100");
-                conn.setRequestMethod("POST");
-                //conn.setConnectTimeout(2000);
-                conn.connect();
-
-                OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-                char[] buf = new char[bytes];
-                wr.write(buf);
-                wr.flush();
-                myInputStream = conn.getInputStream();
-                wr.close();
-
-                BufferedReader rd = new BufferedReader(new InputStreamReader(myInputStream), 4096);
-                String line;
-                StringBuilder sbResult =  new StringBuilder();
-                while ((line = rd.readLine()) != null) {
-                    sbResult.append(line);
+                if (action_modifier[0].equals("get")){
+                    HttpGet request = new HttpGet(url);
+                    response = client.execute(request);
+                } else {
+                    HttpPost post = new HttpPost(url);
+                    char[] buf = new char[bytes];
+                    StringEntity entity = new StringEntity(buf.toString());
+                    post.setEntity(entity);
+                    response = client.execute(post);
                 }
-                rd.close();
-                //String contentOfMyInputStream = sbResult.toString();
-                System.out.println("POST: " +sbResult.toString());
-                //Log.d("POST",sbResult.toString());
-            } catch (Exception e) {
-                //Log.d("POST",e.getMessage());
-                System.out.println("POST: " +e.getMessage());
-            }
-
-/*
-            HttpURLConnection urlConn;
-            URL mUrl = null;
-            try {
-                mUrl = new URL(url);
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            }
-            try {
-                urlConn = (HttpURLConnection) mUrl.openConnection();
-
-                //query is your body
-                urlConn.addRequestProperty("Content-Type", "application/" + "POST");
-                if (query != null) {
-                    urlConn.setRequestProperty("Content-Length", Integer.toString(query.length()));
-                    urlConn.getOutputStream().write(query.getBytes("UTF8"));
+                status = response.getStatusLine().getStatusCode();
+                if(status < HttpStatus.SC_BAD_REQUEST)  {
+                    BufferedReader rd = new BufferedReader
+                            (new InputStreamReader(response.getEntity().getContent()), 4096);
+                    String line = "";
+                    StringBuilder sbResult =  new StringBuilder();
+                    while ((line = rd.readLine()) != null) {
+                        sbResult.append(line);
+                    }
+                    rd.close();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }*/
-
+            }catch (Exception e) {
+                System.out.println(action_modifier[0]+": " +e.toString());
+            }
+            SetResponsesText("("+status+") "+url);
         }
-
         AddToLog("[Network]: " + componentsString);
+    }
 
+    private void SetResponsesText(String textString){
+        String str = responsesTextView.getText().toString();
+        if (str.length()>0){
+            responsesTextView.setText(str+"\n"+textString);
+        }else{
+            responsesTextView.setText(textString);
+        }
     }
 
     /*Transactions*/
@@ -527,7 +431,6 @@ public class WorkActivity extends FragmentActivity {
                         AddToLog("[Transactions]: Get " + parent.getContentDescription());
                         break;
                 }
-               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -559,7 +462,6 @@ public class WorkActivity extends FragmentActivity {
                         MsgBox("Missing SDK part","No getUsername: in SDK");
                         break;
                 }
-               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*Metadata*/
@@ -590,19 +492,16 @@ public class WorkActivity extends FragmentActivity {
                         Crittercism.setMetadata(new JSONObject("{\"Game Level\":\""+n+"\"}"));
                         AddToLog("[Other]: Set Username: Jim");
                     } catch (Throwable t) {
-                        Log.e("Crittercism", "Could not parse malformed JSON: '"+"{\"Game Level\":\""+n+"\"}"+"'");
+                        System.out.println("Crittercism. Could not parse malformed JSON: '"+"{\"Game Level\":\""+n+"\"}"+"'");
                     }
                 }
-               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*Breadcrumbs*/
         TextView textViewLeave = new TextView(context);
         ListView listViewLeave = new ListView(context);
-
         String[] transArrayLeave = {"Leave: 'hello world'", "Leave: 'abc'", "Leave: '123'"};
         Add_ListView(textViewLeave, listViewLeave, transArrayLeave, "BREADCRUMBS:");
-
         listViewLeave.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (position) {
@@ -616,7 +515,6 @@ public class WorkActivity extends FragmentActivity {
                         Crittercism.leaveBreadcrumb("123");           AddToLog("[Other]: Leave: '123'");
                         break;
                 }
-               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*Opt-out status*/
@@ -642,12 +540,11 @@ public class WorkActivity extends FragmentActivity {
                         // else {MsgBox("OptOutStatus","is NO");}
                         break;
                 }
-               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void Add_ListView(TextView textView, ListView listView, String[] transArray, String textText){
+    private void Add_TextView(TextView textView, String textText){
         textView.setBackgroundColor(0xffefeff4);
         textView.setGravity(Gravity.START);
         //textView.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
@@ -662,6 +559,11 @@ public class WorkActivity extends FragmentActivity {
         textView.setDrawingCacheBackgroundColor(Color.GRAY);
         textView.setText(textText);
 
+        workLayout.addView(textView);
+    }
+
+    private void Add_ListView(TextView textView, ListView listView, String[] transArray, String textText){
+        Add_TextView(textView,textText);
        /* listView.setLayoutParams(new ListView.LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT,(int) 1.0f));
@@ -672,23 +574,12 @@ public class WorkActivity extends FragmentActivity {
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
 
-        workLayout.addView(textView);
         workLayout.addView(listView);
         setListViewHeightBasedOnChildren(listView);
     }
 
     private void Add_CheckListView(TextView textView, ListView listView, String[] transArray, String textText){
-        textView.setBackgroundColor(0xffefeff4);
-        textView.setGravity(Gravity.START);
-
-        textView.setTextColor(Color.GRAY);
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
-        textView.setFocusable(false);
-
-        textView.setLayoutParams(new LayoutParams(
-                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-        textView.setDrawingCacheBackgroundColor(Color.GRAY);
-        textView.setText(textText);
+        Add_TextView(textView,textText);
 
         listView.setBackgroundColor(Color.WHITE);
         listView.setDividerHeight(1);
@@ -700,7 +591,6 @@ public class WorkActivity extends FragmentActivity {
         checkBoxArrayAdapter = new CheckBoxArrayAdapter(this, android.R.layout.simple_list_item_checked, transList);
         listView.setAdapter(checkBoxArrayAdapter);
 
-        workLayout.addView(textView);
         workLayout.addView(listView);
         setListViewHeightBasedOnChildren(listView);
     }
@@ -717,7 +607,7 @@ public class WorkActivity extends FragmentActivity {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (position) {
                     case 0://Uncaught Exception
-                        Log.e("Crittercism", "Raising custom uncaught exception");
+                        System.out.println("Crittercism. Raising custom uncaught exception");
                         try {
                             throw new Exception("This is a forced uncaught exception");
                         } catch (Exception exception) {
@@ -726,7 +616,7 @@ public class WorkActivity extends FragmentActivity {
                         }
                         break;
                     case 1://Segfault
-                        Log.e("Crittercism", "Calling kill with SIGSEGV");
+                        System.out.println("Crittercism. Calling kill with SIGSEGV");
                         try {
                             throw new IllegalStateException();
                         } catch (Exception exception) {
@@ -735,7 +625,7 @@ public class WorkActivity extends FragmentActivity {
                         }
                         break;
                     case 2://Stack Overflow
-                        Log.e("Crittercism", "Logging exception: stack overflow");
+                        System.out.println("Crittercism. Logging exception: stack overflow");
                         try {
                             throw new StackOverflowError();
                         } catch (Exception exception) {
@@ -759,7 +649,7 @@ public class WorkActivity extends FragmentActivity {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (position) {
                     case 0://Index Out Of Bounds
-                        Log.e("Crittercism", "Logging exception: out of bounds");
+                        System.out.println("Crittercism. Logging exception: out of bounds");
                         try {
                             throw new ArrayIndexOutOfBoundsException();
                         } catch (Exception exception) {
@@ -800,6 +690,7 @@ public class WorkActivity extends FragmentActivity {
                 relativeLayout.setBackgroundColor(0xffefeff4);
                 basket_button.setVisibility(View.INVISIBLE);
                 copy_button.setVisibility(View.INVISIBLE);
+                responsesTextView.setVisibility(View.INVISIBLE);
                 AddErrorsView();
                 break;
             case 2:
@@ -809,6 +700,7 @@ public class WorkActivity extends FragmentActivity {
                 relativeLayout.setBackgroundColor(0xffefeff4);
                 basket_button.setVisibility(View.INVISIBLE);
                 copy_button.setVisibility(View.INVISIBLE);
+                responsesTextView.setVisibility(View.VISIBLE);
                 AddNetworkLists();
 
                 break;
@@ -819,6 +711,7 @@ public class WorkActivity extends FragmentActivity {
                 relativeLayout.setBackgroundColor(0xffefeff4);
                 basket_button.setVisibility(View.INVISIBLE);
                 copy_button.setVisibility(View.INVISIBLE);
+                responsesTextView.setVisibility(View.INVISIBLE);
                 AddTransactionLists();
 
                 break;
@@ -829,6 +722,7 @@ public class WorkActivity extends FragmentActivity {
                 relativeLayout.setBackgroundColor(0xffefeff4);
                 basket_button.setVisibility(View.INVISIBLE);
                 copy_button.setVisibility(View.INVISIBLE);
+                responsesTextView.setVisibility(View.INVISIBLE);
                 AddOtherLists();
 
                 break;
@@ -839,6 +733,7 @@ public class WorkActivity extends FragmentActivity {
                 relativeLayout.setBackgroundColor(Color.WHITE);
                 basket_button.setVisibility(View.VISIBLE);
                 copy_button.setVisibility(View.VISIBLE);
+                responsesTextView.setVisibility(View.INVISIBLE);
                 showConsole();
                 break;
         }
@@ -853,18 +748,14 @@ public class WorkActivity extends FragmentActivity {
    //     workLayout.addView(child);
     }
 
+    /*Log*/
     private void Add_TextView(TextView textView){
         textView.setBackgroundColor(Color.WHITE);
         textView.setGravity(Gravity.START);
-
-        //textView.setTextColor(Color.GRAY);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         textView.setFocusable(false);
-
         textView.setLayoutParams(new LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-        //textView.setDrawingCacheBackgroundColor(Color.GRAY);
-
         workLayout.addView(textView);
     }
 }

@@ -46,11 +46,26 @@
         android:layout_above="@+id/linearLayout"
         android:fillViewport="false">
 
-        <LinearLayout
-            android:id="@+id/workLayer"
-            android:orientation="vertical"
+        <LinearLayout android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:id="@+id/workLayer"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/responsesTextView"
+                android:layout_width="match_parent"
+                android:layout_height="200sp"
+                android:singleLine="false"
+                android:textColor="#aed21d"
+                android:background="@android:color/black"
+                android:textSize="20sp"
+                android:layout_margin="5px"
+                android:visibility="invisible"/>
+            </LinearLayout>
     </ScrollView>
 
 

@@ -17,7 +17,8 @@ public class LogFile {
         file = new File(context.getFilesDir(), LogName);
         if(!file.exists()){
             try {
-                file.createNewFile();
+                Boolean fileCreated = file.createNewFile();
+                if (!fileCreated) file = null;
             }catch (Exception e) {
                 System.out.println("LogFile: " + e.getMessage());
             }
@@ -52,11 +53,14 @@ public class LogFile {
     }
 
     public void Clear(){
-        file.delete();
-        try {
-            file.createNewFile();
-        }catch (Exception e) {
-            System.out.println("LogFile: " + e.getMessage());
-        }
+        Boolean fileDeleted = file.delete();
+        if (fileDeleted) {
+            try {
+                Boolean fileCreated = file.createNewFile();
+                if (!fileCreated) file = null;
+            } catch (Exception e) {
+                System.out.println("LogFile: " + e.getMessage());
+            }
+        } else file = null;
     }
 }
