@@ -61,7 +61,6 @@ public class WorkActivity extends FragmentActivity {
     private TextView textTitleView;
     private RelativeLayout relativeLayout;
     private ArrayAdapter arrayAdapter;
-    private CheckBoxArrayAdapter checkBoxArrayAdapter;
     private ArrayAdapter<String> stringAdapter;
 
     private LinearLayout workLayout;
@@ -226,7 +225,6 @@ public class WorkActivity extends FragmentActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ((CheckedTextView)view).setChecked(true);
                 connType = position;
-                System.out.println(connType);
             }
         });
         /*Choose protocol*/
@@ -248,7 +246,6 @@ public class WorkActivity extends FragmentActivity {
                     case 1://HTTPS
                         protocol = "https";             break;
                 }
-                System.out.println(protocol);
             }
         });
 
@@ -344,10 +341,8 @@ public class WorkActivity extends FragmentActivity {
                 if (action_modifier[0].equals("post")){
                     OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
                     char[] buf = new char[bytes];
-                    System.out.println(action_modifier[0]+": OutputStreamWriter"+bytes);
                     wr.write(buf);
                     wr.flush();
-                    System.out.println(action_modifier[0]+": OutputStreamWriter");
                 }
                 //System.out.println(action_modifier[0]+": "+url);
                 status = conn.getResponseCode();
@@ -364,12 +359,13 @@ public class WorkActivity extends FragmentActivity {
                     sbResult.append(line);
                 }
                 rd.close();
+                SetResponsesText("(" + status + ") " + url);
                 Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), url_, timeEnd-timeBeg, bytesRead, bytesSent, status, null);
             } catch (Exception e) {
                 Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), url_, timeEnd-timeBeg, bytesRead, bytesSent, status, e);
                 System.out.println(action_modifier[0]+": " +e.toString());
             }
-            SetResponsesText("(" + status + ") " + url);
+
         }else {//org.apache.http.client.HttpClient
             HttpResponse response = null;
             HttpClient client = new DefaultHttpClient();
@@ -397,6 +393,7 @@ public class WorkActivity extends FragmentActivity {
                         sbResult.append(line);
                     }
                     rd.close();
+                    SetResponsesText("(" + status + ") " + url);
                     Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), new URL(url), timeEnd-timeBeg, bytesRead, bytesSent, status, null);
                 }
             }catch (Exception e) {
@@ -407,7 +404,7 @@ public class WorkActivity extends FragmentActivity {
                 }
                 System.out.println(action_modifier[0]+": " +e.toString());
             }
-            SetResponsesText("(" + status + ") " + url);
+
         }
         AddToLog("[Network]: " + componentsString);
     }
@@ -617,35 +614,17 @@ public class WorkActivity extends FragmentActivity {
     }
 
     private void Add_CheckListView(TextView textView, ListView listView, String[] transArray, String textText){
-
         Add_TextView(textView,textText);
 
         listView.setBackgroundColor(Color.WHITE);
         listView.setDividerHeight(1);
 
-        //arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, transArray);
-        stringAdapter = new ArrayAdapter<String>(this, R.layout.list_item, transArray);
+        stringAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_checked, transArray);
 
         listView.setAdapter(stringAdapter);
 
         workLayout.addView(listView);
         setListViewHeightBasedOnChildren(listView);
-/*
-
-        Add_TextView(textView,textText);
-
-        listView.setBackgroundColor(Color.WHITE);
-        listView.setDividerHeight(1);
-
-        ArrayList<String> transList = new ArrayList();
-        for (int i =0; i<transArray.length;i++ ){
-            transList.add(transArray[i]);
-        }
-        checkBoxArrayAdapter = new CheckBoxArrayAdapter(this, android.R.layout.simple_list_item_checked, transList);
-        listView.setAdapter(checkBoxArrayAdapter);
-
-        workLayout.addView(listView);
-        setListViewHeightBasedOnChildren(listView);*/
     }
 
     private void AddErrorsView() {
