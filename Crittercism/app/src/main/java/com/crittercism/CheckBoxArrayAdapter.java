@@ -18,8 +18,8 @@ class CheckBoxArrayAdapter extends ArrayAdapter<String> implements CompoundButto
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         final CheckedTextView view = (CheckedTextView) super.getView(position, convertView, parent);
-        if (position == 0) {view.setChecked(true);   checkedTextBox = view;}
-
+        // if (position == 0) {view.setChecked(true); /* checkedTextBox = view;*/}
+/*
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -27,7 +27,7 @@ class CheckBoxArrayAdapter extends ArrayAdapter<String> implements CompoundButto
                 ((CheckedTextView)v).setChecked(true);
                 checkedTextBox = ((CheckedTextView)v);
             }
-        });
+        });*/
         return view;
     }
 

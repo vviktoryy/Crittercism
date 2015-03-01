@@ -12,6 +12,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.CheckedTextView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
@@ -37,7 +38,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Time;
 import java.util.ArrayList;
 
 public class WorkActivity extends FragmentActivity {
@@ -59,6 +62,7 @@ public class WorkActivity extends FragmentActivity {
     private RelativeLayout relativeLayout;
     private ArrayAdapter arrayAdapter;
     private CheckBoxArrayAdapter checkBoxArrayAdapter;
+    private ArrayAdapter<String> stringAdapter;
 
     private LinearLayout workLayout;
     private Context context;
@@ -213,9 +217,14 @@ public class WorkActivity extends FragmentActivity {
         ListView listViewConnection = new ListView(context);
 
         Add_CheckListView(textViewConnection, listViewConnection, transArrayConnection, "CHOOSE CONNECTION TYPE:");
+        //Add_ListView(textViewConnection, listViewConnection, transArrayConnection, "CHOOSE CONNECTION TYPE:");
 
+        listViewConnection.setItemsCanFocus(false);
+        listViewConnection.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        listViewConnection.setItemChecked(0,true);
         listViewConnection.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ((CheckedTextView)view).setChecked(true);
                 connType = position;
                 System.out.println(connType);
             }
@@ -225,8 +234,14 @@ public class WorkActivity extends FragmentActivity {
         ListView listViewProtocol = new ListView(context);
 
         Add_CheckListView(textViewProtocol, listViewProtocol, transArrayProtocol, "CHOOSE PROTOCOL:");
+        //Add_ListView(textViewProtocol, listViewProtocol, transArrayProtocol, "CHOOSE PROTOCOL:");
+
+        listViewProtocol.setItemsCanFocus(false);
+        listViewProtocol.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        listViewProtocol.setItemChecked(0,true);
         listViewProtocol.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+                ((CheckedTextView)view).setChecked(true);
                 switch (position) {
                     case 0://HTTP
                         protocol = "http";              break;
@@ -302,10 +317,19 @@ public class WorkActivity extends FragmentActivity {
             action_modifier[0] = "get";
         }
 
+        long bytesRead,bytesSent;
+        if (action_modifier[0].equals("get")){
+            bytesRead = bytes;                    bytesSent = 0;
+        }else{
+            bytesRead = 0;                        bytesSent = bytes;
+        }
+        long timeBeg=0,timeEnd=0;
+
         if (connType==0){//HttpURLConnection
+            URL url_=null;
             try {
                 InputStream myInputStream =null;
-                URL url_= new URL(url);
+                url_= new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) url_.openConnection();
                 /*conn.setInstanceFollowRedirects(true);
                 conn.setRequestProperty("Content-length", "100");
@@ -313,6 +337,8 @@ public class WorkActivity extends FragmentActivity {
                 if (action_modifier[0].equals("post")) conn.setDoOutput(true);
                 conn.setChunkedStreamingMode(0);
                 conn.setRequestMethod(action_modifier[0].toUpperCase());
+                timeBeg =System.currentTimeMillis();
+
                 conn.connect();
 
                 if (action_modifier[0].equals("post")){
@@ -329,6 +355,7 @@ public class WorkActivity extends FragmentActivity {
                     myInputStream = conn.getErrorStream();
                 else
                     myInputStream = conn.getInputStream();
+                timeEnd =System.currentTimeMillis();
 
                 BufferedReader rd = new BufferedReader(new InputStreamReader(myInputStream), 4096);
                 String line = "";
@@ -337,25 +364,30 @@ public class WorkActivity extends FragmentActivity {
                     sbResult.append(line);
                 }
                 rd.close();
-                SetResponsesText("("+status+") "+url);
+                Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), url_, timeEnd-timeBeg, bytesRead, bytesSent, status, null);
             } catch (Exception e) {
+                Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), url_, timeEnd-timeBeg, bytesRead, bytesSent, status, e);
                 System.out.println(action_modifier[0]+": " +e.toString());
             }
+            SetResponsesText("(" + status + ") " + url);
         }else {//org.apache.http.client.HttpClient
             HttpResponse response = null;
             HttpClient client = new DefaultHttpClient();
             try {
                 if (action_modifier[0].equals("get")){
                     HttpGet request = new HttpGet(url);
+                    timeBeg =System.currentTimeMillis();
                     response = client.execute(request);
                 } else {
                     HttpPost post = new HttpPost(url);
                     char[] buf = new char[bytes];
                     StringEntity entity = new StringEntity(buf.toString());
                     post.setEntity(entity);
+                    timeBeg =System.currentTimeMillis();
                     response = client.execute(post);
                 }
                 status = response.getStatusLine().getStatusCode();
+                timeEnd =System.currentTimeMillis();
                 if(status < HttpStatus.SC_BAD_REQUEST)  {
                     BufferedReader rd = new BufferedReader
                             (new InputStreamReader(response.getEntity().getContent()), 4096);
@@ -365,11 +397,17 @@ public class WorkActivity extends FragmentActivity {
                         sbResult.append(line);
                     }
                     rd.close();
+                    Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), new URL(url), timeEnd-timeBeg, bytesRead, bytesSent, status, null);
                 }
             }catch (Exception e) {
+                try {
+                    Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), new URL(url), timeEnd-timeBeg, bytesRead, bytesSent, status, e);
+                } catch (MalformedURLException e1) {
+                    e1.printStackTrace();
+                }
                 System.out.println(action_modifier[0]+": " +e.toString());
             }
-            SetResponsesText("("+status+") "+url);
+            SetResponsesText("(" + status + ") " + url);
         }
         AddToLog("[Network]: " + componentsString);
     }
@@ -507,7 +545,7 @@ public class WorkActivity extends FragmentActivity {
                 switch (position) {
                     case 0://hello world
                         Crittercism.leaveBreadcrumb("hello world");   AddToLog("[Other]: Leave: 'hello world'");
-                    break;
+                        break;
                     case 1://abc
                         Crittercism.leaveBreadcrumb("abc");           AddToLog("[Other]: Leave: 'abc'");
                         break;
@@ -579,6 +617,21 @@ public class WorkActivity extends FragmentActivity {
     }
 
     private void Add_CheckListView(TextView textView, ListView listView, String[] transArray, String textText){
+
+        Add_TextView(textView,textText);
+
+        listView.setBackgroundColor(Color.WHITE);
+        listView.setDividerHeight(1);
+
+        //arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, transArray);
+        stringAdapter = new ArrayAdapter<String>(this, R.layout.list_item, transArray);
+
+        listView.setAdapter(stringAdapter);
+
+        workLayout.addView(listView);
+        setListViewHeightBasedOnChildren(listView);
+/*
+
         Add_TextView(textView,textText);
 
         listView.setBackgroundColor(Color.WHITE);
@@ -592,7 +645,7 @@ public class WorkActivity extends FragmentActivity {
         listView.setAdapter(checkBoxArrayAdapter);
 
         workLayout.addView(listView);
-        setListViewHeightBasedOnChildren(listView);
+        setListViewHeightBasedOnChildren(listView);*/
     }
 
     private void AddErrorsView() {
@@ -635,7 +688,7 @@ public class WorkActivity extends FragmentActivity {
                         //recurse
                         break;
                 }
-               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+                // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
         /*handle exception*/
@@ -662,7 +715,7 @@ public class WorkActivity extends FragmentActivity {
                         MsgBox("Missing SDK part","No logError: in SDK");
                         break;
                 }
-               // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+                // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -744,8 +797,8 @@ public class WorkActivity extends FragmentActivity {
         Add_TextView(logTextView);
         logTextView.setText(LogString);
         //logTextView.setText(logString);
-   //     View child = getLayoutInflater().inflate(R.layout.console, null);
-   //     workLayout.addView(child);
+        //     View child = getLayoutInflater().inflate(R.layout.console, null);
+        //     workLayout.addView(child);
     }
 
     /*Log*/
