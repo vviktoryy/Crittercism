@@ -24,4 +24,8 @@
     <string name="send">Send</string>
     <string name="cancel">Cancel</string>
     <string name="to">To:</string>
+
+    <string name="clear">CLEAR</string>
+    <string name="exception">EXCEPTION</string>
+    <string name="crash">CRASH</string>
 </resources>

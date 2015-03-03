@@ -12,6 +12,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CheckedTextView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -63,6 +64,8 @@ public class WorkActivity extends FragmentActivity {
     private ArrayAdapter arrayAdapter;
     private ArrayAdapter<String> stringAdapter;
 
+    private LinearLayout errorButtonsLayout;
+
     private LinearLayout workLayout;
     private Context context;
 
@@ -85,6 +88,10 @@ public class WorkActivity extends FragmentActivity {
     private String LogString="";
     private TextView logTextView;
     private TextView responsesTextView;
+
+    private Button clearButton;
+    private Button exceptionButton;
+    private Button crashButton;
 
     private LogFile logFile;
 
@@ -174,6 +181,26 @@ public class WorkActivity extends FragmentActivity {
         });
 
         responsesTextView = (TextView) findViewById(R.id.responsesTextView);
+        errorButtonsLayout = (LinearLayout) findViewById(R.id.errorButtonsLayout);
+
+        clearButton = (Button) findViewById(R.id.clearButton);
+        clearButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+            }
+        });
+        exceptionButton = (Button) findViewById(R.id.exceptionButton);
+        exceptionButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+            }
+        });
+        crashButton = (Button) findViewById(R.id.crashButton);
+        crashButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+
+            }
+        });
     }
 
     private void AddToLog(String addString){
@@ -220,7 +247,7 @@ public class WorkActivity extends FragmentActivity {
 
         listViewConnection.setItemsCanFocus(false);
         listViewConnection.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-        listViewConnection.setItemChecked(0,true);
+        listViewConnection.setItemChecked(connType,true);
         listViewConnection.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 ((CheckedTextView)view).setChecked(true);
@@ -236,7 +263,8 @@ public class WorkActivity extends FragmentActivity {
 
         listViewProtocol.setItemsCanFocus(false);
         listViewProtocol.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-        listViewProtocol.setItemChecked(0,true);
+        if (protocol.equals("http")) listViewProtocol.setItemChecked(0,true);
+        else listViewProtocol.setItemChecked(1, true);
         listViewProtocol.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 ((CheckedTextView)view).setChecked(true);
@@ -351,14 +379,15 @@ public class WorkActivity extends FragmentActivity {
                 else
                     myInputStream = conn.getInputStream();
                 timeEnd =System.currentTimeMillis();
-
-                BufferedReader rd = new BufferedReader(new InputStreamReader(myInputStream), 4096);
-                String line = "";
-                StringBuilder sbResult =  new StringBuilder();
-                while ((line = rd.readLine()) != null) {
-                    sbResult.append(line);
+                if (action_modifier[0].equals("get")) {
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(myInputStream), 4096);
+                    String line = "";
+                    StringBuilder sbResult = new StringBuilder();
+                    while ((line = rd.readLine()) != null) {
+                        sbResult.append(line);
+                    }
+                    rd.close();
                 }
-                rd.close();
                 SetResponsesText("(" + status + ") " + url);
                 Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), url_, timeEnd-timeBeg, bytesRead, bytesSent, status, null);
             } catch (Exception e) {
@@ -384,7 +413,7 @@ public class WorkActivity extends FragmentActivity {
                 }
                 status = response.getStatusLine().getStatusCode();
                 timeEnd =System.currentTimeMillis();
-                if(status < HttpStatus.SC_BAD_REQUEST)  {
+                if(action_modifier[0].equals("get") && status < HttpStatus.SC_BAD_REQUEST)  {
                     BufferedReader rd = new BufferedReader
                             (new InputStreamReader(response.getEntity().getContent()), 4096);
                     String line = "";
@@ -393,16 +422,15 @@ public class WorkActivity extends FragmentActivity {
                         sbResult.append(line);
                     }
                     rd.close();
-                    SetResponsesText("(" + status + ") " + url);
-                    Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), new URL(url), timeEnd-timeBeg, bytesRead, bytesSent, status, null);
                 }
+                SetResponsesText("(" + status + ") " + url);
+                Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), new URL(url), timeEnd-timeBeg, bytesRead, bytesSent, status, null);
             }catch (Exception e) {
                 try {
                     Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), new URL(url), timeEnd-timeBeg, bytesRead, bytesSent, status, e);
                 } catch (MalformedURLException e1) {
                     e1.printStackTrace();
                 }
-                System.out.println(action_modifier[0]+": " +e.toString());
             }
 
         }
@@ -697,6 +725,34 @@ public class WorkActivity extends FragmentActivity {
                 // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
+        /*Custom stack trace*/
+        TextView textViewStack = new TextView(context);
+        ListView listViewStack = new ListView(context);
+
+        String[] transArrayStack = {"Add Function..."};
+        Add_ListView(textViewStack, listViewStack, transArrayStack, "CUSTOM STACK TRACE:");
+
+        listViewStack.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+                switch (position) {
+                    case 0://Add Function
+                       /* System.out.println("Crittercism. Logging exception: out of bounds");
+                        try {
+                            throw new ArrayIndexOutOfBoundsException();
+                        } catch (Exception exception) {
+                            Crittercism.logHandledException(exception);
+                            AddToLog("[Error]: Index Out OfBounds");
+                        }*/
+                        AddToLog("[Error]: Add Function...");
+                        break;
+                    case 1://Add Another Function
+                        AddToLog("[Error]: Add Another Function...");
+                        //MsgBox("Missing SDK part","No logError: in SDK");
+                        break;
+                }
+                // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setContent(int id) {
@@ -723,6 +779,7 @@ public class WorkActivity extends FragmentActivity {
                 basket_button.setVisibility(View.INVISIBLE);
                 copy_button.setVisibility(View.INVISIBLE);
                 responsesTextView.setVisibility(View.INVISIBLE);
+                errorButtonsLayout.setVisibility(View.VISIBLE);
                 AddErrorsView();
                 break;
             case 2:
@@ -733,6 +790,7 @@ public class WorkActivity extends FragmentActivity {
                 basket_button.setVisibility(View.INVISIBLE);
                 copy_button.setVisibility(View.INVISIBLE);
                 responsesTextView.setVisibility(View.VISIBLE);
+                errorButtonsLayout.setVisibility(View.INVISIBLE);
                 AddNetworkLists();
 
                 break;
@@ -744,6 +802,7 @@ public class WorkActivity extends FragmentActivity {
                 basket_button.setVisibility(View.INVISIBLE);
                 copy_button.setVisibility(View.INVISIBLE);
                 responsesTextView.setVisibility(View.INVISIBLE);
+                errorButtonsLayout.setVisibility(View.INVISIBLE);
                 AddTransactionLists();
 
                 break;
@@ -755,6 +814,7 @@ public class WorkActivity extends FragmentActivity {
                 basket_button.setVisibility(View.INVISIBLE);
                 copy_button.setVisibility(View.INVISIBLE);
                 responsesTextView.setVisibility(View.INVISIBLE);
+                errorButtonsLayout.setVisibility(View.INVISIBLE);
                 AddOtherLists();
 
                 break;
@@ -766,6 +826,7 @@ public class WorkActivity extends FragmentActivity {
                 basket_button.setVisibility(View.VISIBLE);
                 copy_button.setVisibility(View.VISIBLE);
                 responsesTextView.setVisibility(View.INVISIBLE);
+                errorButtonsLayout.setVisibility(View.INVISIBLE);
                 showConsole();
                 break;
         }
