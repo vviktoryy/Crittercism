@@ -28,4 +28,7 @@
     <string name="clear">CLEAR</string>
     <string name="exception">EXCEPTION</string>
     <string name="crash">CRASH</string>
+    <string name="title_activity_function_dialog">FunctionDialog</string>
+
+    <string name="hello_world">Hello world!</string>
 </resources>

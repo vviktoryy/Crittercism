@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -89,6 +90,7 @@ public class WorkActivity extends FragmentActivity {
     private TextView logTextView;
     private TextView responsesTextView;
 
+    private ListView listViewStack;
     private Button clearButton;
     private Button exceptionButton;
     private Button crashButton;
@@ -184,18 +186,21 @@ public class WorkActivity extends FragmentActivity {
         errorButtonsLayout = (LinearLayout) findViewById(R.id.errorButtonsLayout);
 
         clearButton = (Button) findViewById(R.id.clearButton);
+        buttonEffect(clearButton);
         clearButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
             }
         });
         exceptionButton = (Button) findViewById(R.id.exceptionButton);
+        buttonEffect(exceptionButton);
         exceptionButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
             }
         });
         crashButton = (Button) findViewById(R.id.crashButton);
+        buttonEffect(crashButton);
         crashButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
 
@@ -626,7 +631,7 @@ public class WorkActivity extends FragmentActivity {
     }
 
     private void Add_ListView(TextView textView, ListView listView, String[] transArray, String textText){
-        Add_TextView(textView,textText);
+        Add_TextView(textView, textText);
        /* listView.setLayoutParams(new ListView.LayoutParams(
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT,(int) 1.0f));
@@ -727,30 +732,28 @@ public class WorkActivity extends FragmentActivity {
         });
         /*Custom stack trace*/
         TextView textViewStack = new TextView(context);
-        ListView listViewStack = new ListView(context);
+        listViewStack = new ListView(context);
 
         String[] transArrayStack = {"Add Function..."};
         Add_ListView(textViewStack, listViewStack, transArrayStack, "CUSTOM STACK TRACE:");
 
         listViewStack.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
-                switch (position) {
-                    case 0://Add Function
-                       /* System.out.println("Crittercism. Logging exception: out of bounds");
-                        try {
-                            throw new ArrayIndexOutOfBoundsException();
-                        } catch (Exception exception) {
-                            Crittercism.logHandledException(exception);
-                            AddToLog("[Error]: Index Out OfBounds");
-                        }*/
-                        AddToLog("[Error]: Add Function...");
+                switch (((TextView)view).getText().toString()){
+                    case "Add Function...":
+                        //view.setVisibility(View.INVISIBLE);
+                        //AddToLog("[Error]: Add Function...");
+                    case "Add Another Function...":
+                        //AddToLog("[Error]: Add Another Function...");
+                        FragmentManager fm = getSupportFragmentManager();
+                        FunctionDialog functionDialog = new FunctionDialog();
+                        functionDialog.setArguments(context, LogString, listViewStack, "[Error]: "+((TextView)view).getText().toString());
+                        functionDialog.show(fm, "function_dialog");
                         break;
-                    case 1://Add Another Function
-                        AddToLog("[Error]: Add Another Function...");
-                        //MsgBox("Missing SDK part","No logError: in SDK");
+                    default:
+                        //do what?
                         break;
                 }
-                // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -850,5 +853,29 @@ public class WorkActivity extends FragmentActivity {
         textView.setLayoutParams(new LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         workLayout.addView(textView);
+    }
+
+    /*for click effect on transparent buttons putting*/
+    public static void buttonEffect(View button) {
+        button.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN: {
+                        ((TextView)v).setTextColor(Color.GRAY);
+                        //v.setBackgroundColor(Color.CYAN);
+                        v.invalidate();
+                        break;
+                    }
+                    case MotionEvent.ACTION_UP: {
+                        //v.setBackgroundColor(Color.WHITE);
+                        ((TextView)v).setTextColor(Color.BLUE);
+                        v.invalidate();
+                        break;
+                    }
+                }
+                return false;
+            }
+        });
     }
 }

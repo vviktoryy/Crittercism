@@ -25,6 +25,10 @@
             android:name=".WorkActivity"
             android:screenOrientation="portrait" >
         </activity>
+        <activity
+            android:name=".FunctionDialog"
+            android:label="@string/title_activity_function_dialog" >
+        </activity>
     </application>
 
 </manifest>

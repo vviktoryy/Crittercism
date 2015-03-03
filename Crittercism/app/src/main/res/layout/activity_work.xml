@@ -18,9 +18,10 @@
         android:layout_centerHorizontal="true" />
 
     <ImageButton
-        android:layout_width="40sp"
-        android:layout_height="40sp"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
         android:gravity="left"
+        android:scaleType="fitXY"
         android:id="@+id/BasketButton"
         android:src="@drawable/basket"
         android:layout_alignParentTop="true"
@@ -28,14 +29,16 @@
         android:visibility="invisible" />
 
     <ImageButton
-        android:layout_width="40sp"
-        android:layout_height="40sp"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
         android:gravity="right"
         android:id="@+id/CopyButton"
         android:src="@drawable/mail"
+        android:scaleType="fitXY"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:visibility="invisible" />
+
 
     <ScrollView
         android:layout_width="match_parent"
@@ -54,6 +57,10 @@
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
             <LinearLayout
                 android:padding="10sp"
@@ -99,7 +106,6 @@
                     android:background="@android:color/white"
                     />
             </LinearLayout>
-
             <TextView
                 android:id="@+id/responsesTextView"
                 android:layout_width="match_parent"
@@ -111,9 +117,10 @@
                 android:layout_margin="5px"
                 android:visibility="invisible"/>
 
-            </LinearLayout>
-    </ScrollView>
+                </RelativeLayout>
 
+        </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
         android:baselineAligned="false"

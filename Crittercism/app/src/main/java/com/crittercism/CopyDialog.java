@@ -34,7 +34,7 @@ public class CopyDialog extends DialogFragment implements AdapterView.OnItemClic
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.copy_dialog, container);
-        copy_list = (ListView) view.findViewById(R.id.list);
+        copy_list = (ListView) view.findViewById(R.id.copy_list);
         getDialog().getWindow().requestFeature(Window.FEATURE_NO_TITLE);
 
         return view;
