@@ -1,6 +1,8 @@
 package com.crittercism;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -16,14 +18,10 @@ public class FunctionDialog extends DialogFragment implements AdapterView.OnItem
     ListView function_list;
     ListView error_function_list;
     Context context;
-    String LogString;
-    String Operation;
 
-    public void setArguments(Context context_, String LogString_, ListView error_function_list_, String Operation_) {
+    public void setArguments(Context context_, ListView error_function_list_) {
         context = context_;
-        LogString = LogString_;
         error_function_list = error_function_list_;
-        Operation = Operation_;
     }
 
     @Override
@@ -50,7 +48,14 @@ public class FunctionDialog extends DialogFragment implements AdapterView.OnItem
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         dismiss();
-        //function_items[position]
-       // error_function_list.removeView((View)error_function_list.getSelectedItem());
+
+        ((WorkActivity) context).transArrayStack.remove(((WorkActivity) context).transArrayStack.size()-1);
+        ((WorkActivity) context).transArrayStack.add(function_items[position]);
+        ((WorkActivity) context).transArrayStack.add("Add Another Function...");
+
+        ((WorkActivity) context).arrayFuncAdapter.notifyDataSetChanged();
+        ((WorkActivity) context).setListViewHeightBasedOnChildren(error_function_list);
+        if (((WorkActivity) context).transArrayStack.size()>2) ((WorkActivity) context).AddToLog("[Error]: Add Another Function...");
+        else ((WorkActivity) context).AddToLog("[Error]: Add Function...");
     }
 }

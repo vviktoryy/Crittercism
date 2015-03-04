@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
+import android.text.method.ScrollingMovementMethod;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -44,6 +45,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Time;
 import java.util.ArrayList;
+import java.util.List;
 
 public class WorkActivity extends FragmentActivity {
     private ImageButton imageButtonError;
@@ -76,6 +78,9 @@ public class WorkActivity extends FragmentActivity {
             "Do 202", "Do 404", "Do 500"};
     private String[] transArrayProtocol = {"HTTP", "HTTPS"};
     private String[] transArrayConnection = {"[HttpURLConnection]","[org.apache.http.client.HttpClient]"};
+
+    public List<String> transArrayStack;
+    public ArrayAdapter arrayFuncAdapter;
 
     private String url;
     private String[] action_modifier;
@@ -183,32 +188,106 @@ public class WorkActivity extends FragmentActivity {
         });
 
         responsesTextView = (TextView) findViewById(R.id.responsesTextView);
+        //responsesTextView = (TextView) findViewById(R.id.responsesTextView);
+        //responsesTextView.setMovementMethod(new ScrollingMovementMethod());
+
         errorButtonsLayout = (LinearLayout) findViewById(R.id.errorButtonsLayout);
 
         clearButton = (Button) findViewById(R.id.clearButton);
         buttonEffect(clearButton);
         clearButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
+                transArrayStack.clear();
+                transArrayStack.add("Add Function...");
+                arrayFuncAdapter.notifyDataSetChanged();
+                setListViewHeightBasedOnChildren(listViewStack);
+                AddToLog("[Error]: Clear");
             }
         });
         exceptionButton = (Button) findViewById(R.id.exceptionButton);
         buttonEffect(exceptionButton);
         exceptionButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-
+                for(int i=0; i< transArrayStack.size();i++){
+                    switch (transArrayStack.get(i)){
+                        case "Function A":
+                            funcA();
+                            break;
+                        case "Function B":
+                            funcB();
+                            break;
+                        case "Function C":
+                            funcC();
+                            break;
+                        case "Function D":
+                            funcD();
+                            break;
+                        default:
+                            System.out.println("Crittercism. Raising forced caught exception");
+                            try {
+                                throw new Exception("This is a forced caught exception");
+                            } catch (Exception exception) {
+                                Crittercism.logHandledException(exception);
+                                AddToLog("[Error]: Exception");
+                            }
+                            break;
+                    }
+                }
             }
         });
         crashButton = (Button) findViewById(R.id.crashButton);
         buttonEffect(crashButton);
         crashButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                for(int i=0; i< transArrayStack.size();i++){
+                    switch (transArrayStack.get(i)){
+                        case "Function A":
+                            funcA();
+                            break;
+                        case "Function B":
+                            funcB();
+                            break;
+                        case "Function C":
+                            funcC();
+                            break;
+                        case "Function D":
+                            funcD();
+                            break;
+                        default:
+                            System.out.println("Crittercism. Raising forced uncaught exception");
+                            AddToLog("[Error]: Crash");
+                            try {
+                                throw new Exception("This is a forced uncaught exception");
+                            } catch (Exception e) {
 
+                            }
+                            break;
+                    }
+                }
             }
         });
+
+        transArrayStack = new ArrayList<String>();
+        transArrayStack.add("Add Function...");
     }
 
-    private void AddToLog(String addString){
+    private void funcA(){
+        AddToLog("[Error]: Function A called...");
+    }
+
+    private void funcB(){
+        AddToLog("[Error]: Function B called...");
+    }
+
+    private void funcC(){
+        AddToLog("[Error]: Function C called...");
+    }
+
+    private void funcD(){
+        AddToLog("[Error]: Function D called...");
+    }
+
+    public void AddToLog(String addString){
         if (LogString.length()>0){  LogString+="\n"+addString;
         } else {            LogString=addString;        }
         if (logFile!=null) logFile.Write(LogString);
@@ -317,11 +396,17 @@ public class WorkActivity extends FragmentActivity {
     private class Connection extends AsyncTask {
         @Override
         protected Object doInBackground(Object... arg0) {
-            CreateNetworkAction();
-            return null;
+            return CreateNetworkAction();
+        }
+        @Override
+        protected void onPostExecute(Object result) {
+            if (result!=null){
+                String res = result.toString();
+                SetResponsesText(res);
+            }
         }
     }
-    private void CreateNetworkAction(){
+    private String CreateNetworkAction(){
         action_modifier = componentsString.split(" ");
         action_modifier[0] = action_modifier[0].toLowerCase();
 
@@ -393,11 +478,11 @@ public class WorkActivity extends FragmentActivity {
                     }
                     rd.close();
                 }
-                SetResponsesText("(" + status + ") " + url);
                 Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), url_, timeEnd-timeBeg, bytesRead, bytesSent, status, null);
             } catch (Exception e) {
                 Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), url_, timeEnd-timeBeg, bytesRead, bytesSent, status, e);
                 System.out.println(action_modifier[0]+": " +e.toString());
+                return null;
             }
 
         }else {//org.apache.http.client.HttpClient
@@ -428,18 +513,20 @@ public class WorkActivity extends FragmentActivity {
                     }
                     rd.close();
                 }
-                SetResponsesText("(" + status + ") " + url);
+
                 Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), new URL(url), timeEnd-timeBeg, bytesRead, bytesSent, status, null);
             }catch (Exception e) {
                 try {
                     Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), new URL(url), timeEnd-timeBeg, bytesRead, bytesSent, status, e);
                 } catch (MalformedURLException e1) {
                     e1.printStackTrace();
+                    return null;
                 }
             }
 
         }
         AddToLog("[Network]: " + componentsString);
+        return "(" + status + ") " + url;
     }
 
     private void SetResponsesText(String textString){
@@ -632,15 +719,25 @@ public class WorkActivity extends FragmentActivity {
 
     private void Add_ListView(TextView textView, ListView listView, String[] transArray, String textText){
         Add_TextView(textView, textText);
-       /* listView.setLayoutParams(new ListView.LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.WRAP_CONTENT,(int) 1.0f));
-*/
+
         listView.setBackgroundColor(Color.WHITE);
         listView.setDividerHeight(1);
 
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
+
+        workLayout.addView(listView);
+        setListViewHeightBasedOnChildren(listView);
+    }
+
+    private void Add_ListView2(TextView textView, ListView listView, List<String> transArray, String textText){
+        Add_TextView(textView, textText);
+
+        listView.setBackgroundColor(Color.WHITE);
+        listView.setDividerHeight(1);
+
+        arrayFuncAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, transArray);
+        listView.setAdapter(arrayFuncAdapter);
 
         workLayout.addView(listView);
         setListViewHeightBasedOnChildren(listView);
@@ -734,24 +831,20 @@ public class WorkActivity extends FragmentActivity {
         TextView textViewStack = new TextView(context);
         listViewStack = new ListView(context);
 
-        String[] transArrayStack = {"Add Function..."};
-        Add_ListView(textViewStack, listViewStack, transArrayStack, "CUSTOM STACK TRACE:");
+        Add_ListView2(textViewStack, listViewStack, transArrayStack, "CUSTOM STACK TRACE:");
 
         listViewStack.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (((TextView)view).getText().toString()){
                     case "Add Function...":
-                        //view.setVisibility(View.INVISIBLE);
-                        //AddToLog("[Error]: Add Function...");
+
                     case "Add Another Function...":
-                        //AddToLog("[Error]: Add Another Function...");
                         FragmentManager fm = getSupportFragmentManager();
                         FunctionDialog functionDialog = new FunctionDialog();
-                        functionDialog.setArguments(context, LogString, listViewStack, "[Error]: "+((TextView)view).getText().toString());
+                        functionDialog.setArguments(context, listViewStack);
                         functionDialog.show(fm, "function_dialog");
                         break;
                     default:
-                        //do what?
                         break;
                 }
             }

@@ -59,13 +59,7 @@ public class CopyDialog extends DialogFragment implements AdapterView.OnItemClic
             case 0://mail
                 Intent emailIntent = new Intent(Intent.ACTION_SEND);
                 emailIntent.setData(Uri.parse("mailto:"));
-                //String[] to = email_address.getText().toString().split(";");
-                //String[] cc = email_address_copy.getText().toString().split(";");
-                //emailIntent.putExtra(Intent.EXTRA_EMAIL, to);
-                //emailIntent.putExtra(Intent.EXTRA_CC, cc);
-                //emailIntent.putExtra(Intent.EXTRA_SUBJECT, email_subject.getText().toString());
                 emailIntent.putExtra(Intent.EXTRA_TEXT, LogString);
-                //System.out.println(LogString);
                 emailIntent.putExtra(Intent.EXTRA_CC, "");
                 emailIntent.setType("message/rfc822");
                 startActivity(Intent.createChooser(emailIntent, "Email"));
@@ -80,7 +74,6 @@ public class CopyDialog extends DialogFragment implements AdapterView.OnItemClic
                 ClipData clip = ClipData.newPlainText("text", LogString);
                 clipboard.setPrimaryClip(clip);
                 //System.out.println("paste:  "+clipboard.getText().toString());
-                //System.out.println(LogString);
                 Toast.makeText(getActivity(), "Copied to Clipboard", Toast.LENGTH_SHORT).show();
                 break;
         }
