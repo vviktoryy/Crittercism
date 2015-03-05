@@ -1,7 +1,6 @@
 package com.crittercism;
 
 import android.content.Context;
-import android.content.Entity;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,9 +12,12 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckedTextView;
+import android.widget.GridView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
@@ -25,9 +27,9 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import android.app.AlertDialog;
-import com.crittercism.app.Crittercism;
+import android.widget.Toast;
 
-import org.apache.http.HttpEntity;
+import com.crittercism.app.Crittercism;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -43,11 +45,10 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WorkActivity extends FragmentActivity {
+public class WorkActivity extends FragmentActivity implements ScrollViewListener{
     private ImageButton imageButtonError;
     private ImageButton imageButtonConsole;
     private ImageButton imageButtonOther;
@@ -71,6 +72,8 @@ public class WorkActivity extends FragmentActivity {
 
     private LinearLayout workLayout;
     private Context context;
+
+    private ScrollViewExt scrollView;
 
     private String[] transArrayPunch = {"Get 100b", "Get 5Kb", "Get 7Mb",
             "Post 100b", "Post 4Kb", "Post 3Mb",
@@ -99,7 +102,6 @@ public class WorkActivity extends FragmentActivity {
     private Button clearButton;
     private Button exceptionButton;
     private Button crashButton;
-
     private LogFile logFile;
 
     private String componentsString;
@@ -114,7 +116,51 @@ public class WorkActivity extends FragmentActivity {
         setContent(1);
     }
 
+    @Override
+    public void onScrollChanged(final ScrollViewExt scrollView, final int x, final int y, int oldx, int oldy) {
+        final View view = (View) scrollView.getChildAt(scrollView.getChildCount() - 1);
+        int diff = (view.getBottom() - (scrollView.getHeight() + scrollView.getScrollY()));
+
+        // if diff is zero, then the bottom has been reached
+        if (diff == 0) {
+            if (responsesTextView.getVisibility() == View.VISIBLE){
+                final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) responsesTextView.getLayoutParams();
+                if (params.height < 10) {
+                    Animation a = new Animation() {
+                        @Override
+                        protected void applyTransformation(float interpolatedTime, Transformation t) {
+                            params.height = (int) (200 * interpolatedTime);
+                            responsesTextView.setLayoutParams(params);
+                            scrollView.scrollTo(x, 10000);
+                        }
+                    };
+                    a.setDuration(300); // in ms
+                    responsesTextView.startAnimation(a);
+
+                }
+            }
+        }else{
+            if (responsesTextView.getVisibility() == View.VISIBLE){
+                final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) responsesTextView.getLayoutParams();
+                if (params.height > 190) {
+                    Animation a = new Animation() {
+                        @Override
+                        protected void applyTransformation(float interpolatedTime, Transformation t) {
+                            params.height = (int) (200 - 200 * interpolatedTime);
+                            responsesTextView.setLayoutParams(params);
+                        }
+                    };
+                    a.setDuration(300); // in ms
+                    responsesTextView.startAnimation(a);
+                }
+            }
+        }
+    }
+
     private void setupViews() {
+        scrollView = (ScrollViewExt)findViewById(R.id.scrollView);
+        scrollView.setScrollViewListener(this);
+
         workLayout = (LinearLayout) findViewById(R.id.workLayer);
         textTitleView = (TextView) findViewById(R.id.TextTitleView);
         relativeLayout=(RelativeLayout) findViewById(R.id.relativeLayout);
@@ -188,8 +234,7 @@ public class WorkActivity extends FragmentActivity {
         });
 
         responsesTextView = (TextView) findViewById(R.id.responsesTextView);
-        //responsesTextView = (TextView) findViewById(R.id.responsesTextView);
-        //responsesTextView.setMovementMethod(new ScrollingMovementMethod());
+        responsesTextView.setMovementMethod(new ScrollingMovementMethod());
 
         errorButtonsLayout = (LinearLayout) findViewById(R.id.errorButtonsLayout);
 
@@ -256,12 +301,11 @@ public class WorkActivity extends FragmentActivity {
                         default:
                             System.out.println("Crittercism. Raising forced uncaught exception");
                             AddToLog("[Error]: Crash");
-                            try {
+                            throw new RuntimeException("This is a forced uncaught exception");
+                            /*try {
                                 throw new Exception("This is a forced uncaught exception");
                             } catch (Exception e) {
-
-                            }
-                            break;
+                            }*/
                     }
                 }
             }
@@ -269,6 +313,7 @@ public class WorkActivity extends FragmentActivity {
 
         transArrayStack = new ArrayList<String>();
         transArrayStack.add("Add Function...");
+
     }
 
     private void funcA(){
@@ -363,11 +408,22 @@ public class WorkActivity extends FragmentActivity {
 
         /*Punch it*/
         TextView textViewPunch = new TextView(context);
-        ListView listViewPunch = new ListView(context);
+        GridView gridViewPunch = new GridView(context);
+        Add_TextView(textViewPunch, "PUNCH IT:");
 
-        Add_ListView(textViewPunch, listViewPunch, transArrayPunch, "PUNCH IT:");
+        gridViewPunch.setLayoutParams(new LayoutParams(
+                LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+        gridViewPunch.setNumColumns(3);
+        gridViewPunch.setGravity(Gravity.CENTER);
+        gridViewPunch.setBackgroundColor(Color.WHITE);
 
-        listViewPunch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        arrayAdapter = new ArrayAdapter(this, R.layout.linear_list_item, transArrayPunch);
+        gridViewPunch.setAdapter(arrayAdapter);
+
+        workLayout.addView(gridViewPunch);
+        setGridViewHeightBasedOnChildren(gridViewPunch,3);
+
+        gridViewPunch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 componentsString = transArrayPunch[position];
                 //CreateNetworkAction();
@@ -599,7 +655,7 @@ public class WorkActivity extends FragmentActivity {
         String[] transArrayName = {"Set Username: Bob", "Set Username: Jim",
                 "Set Username: Sue", "Check Username"};
         Add_ListView(textViewName, listViewName, transArrayName, "USERNAME:");
-
+        listViewName.setItemChecked(0, true);
         listViewName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (position) {
@@ -766,36 +822,42 @@ public class WorkActivity extends FragmentActivity {
         Add_ListView(textViewCrash, listViewCrash, transArrayCrash, "FORCE CRASH:");
 
         listViewCrash.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
                     case 0://Uncaught Exception
                         System.out.println("Crittercism. Raising custom uncaught exception");
-                        try {
+                        AddToLog("[Error]: Uncaught Exception");
+                        throw new RuntimeException("This is a forced uncaught exception");
+                        /*try {
                             throw new Exception("This is a forced uncaught exception");
                         } catch (Exception exception) {
                             Crittercism.logHandledException(exception);
                             AddToLog("[Error]: Uncaught Exception");
                         }
-                        break;
+                        break;*/
                     case 1://Segfault
                         System.out.println("Crittercism. Calling kill with SIGSEGV");
-                        try {
+                        AddToLog("[Error]: Segfault");
+                        throw new IllegalStateException();
+                        /*try {
                             throw new IllegalStateException();
                         } catch (Exception exception) {
                             Crittercism.logHandledException(exception);
                             AddToLog("[Error]: Segfault");
                         }
-                        break;
+                        break;*/
                     case 2://Stack Overflow
                         System.out.println("Crittercism. Logging exception: stack overflow");
-                        try {
+                        AddToLog("[Error]: Stack Overflow");
+                        throw new StackOverflowError();
+                        /*try {
                             throw new StackOverflowError();
                         } catch (Exception exception) {
                             Crittercism.logHandledException(exception);
                             AddToLog("[Error]: Stack Overflow");
                         }
                         //recurse
-                        break;
+                        break;*/
                 }
                 // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();
             }
@@ -817,6 +879,7 @@ public class WorkActivity extends FragmentActivity {
                         } catch (Exception exception) {
                             Crittercism.logHandledException(exception);
                             AddToLog("[Error]: Index Out OfBounds");
+                            Toast.makeText(getApplicationContext(),"Index Out OfBounds", Toast.LENGTH_SHORT).show();
                         }
                         break;
                     case 1://Log Error
@@ -872,9 +935,9 @@ public class WorkActivity extends FragmentActivity {
                 imageButtonError.setImageResource(R.drawable.bug_blue);
                 textTitleView.setText(R.string.title_error);
                 relativeLayout.setBackgroundColor(0xffefeff4);
-                basket_button.setVisibility(View.INVISIBLE);
-                copy_button.setVisibility(View.INVISIBLE);
-                responsesTextView.setVisibility(View.INVISIBLE);
+                basket_button.setVisibility(View.GONE);
+                copy_button.setVisibility(View.GONE);
+                responsesTextView.setVisibility(View.GONE);
                 errorButtonsLayout.setVisibility(View.VISIBLE);
                 AddErrorsView();
                 break;
@@ -883,10 +946,10 @@ public class WorkActivity extends FragmentActivity {
                 imageButtonNetWork.setImageResource(R.drawable.network_blue);
                 textTitleView.setText(R.string.title_network);
                 relativeLayout.setBackgroundColor(0xffefeff4);
-                basket_button.setVisibility(View.INVISIBLE);
-                copy_button.setVisibility(View.INVISIBLE);
+                basket_button.setVisibility(View.GONE);
+                copy_button.setVisibility(View.GONE);
                 responsesTextView.setVisibility(View.VISIBLE);
-                errorButtonsLayout.setVisibility(View.INVISIBLE);
+                errorButtonsLayout.setVisibility(View.GONE);
                 AddNetworkLists();
 
                 break;
@@ -895,10 +958,10 @@ public class WorkActivity extends FragmentActivity {
                 imageButtonTransaction.setImageResource(R.drawable.shopping_cart_blue);
                 textTitleView.setText(R.string.title_transactions);
                 relativeLayout.setBackgroundColor(0xffefeff4);
-                basket_button.setVisibility(View.INVISIBLE);
-                copy_button.setVisibility(View.INVISIBLE);
-                responsesTextView.setVisibility(View.INVISIBLE);
-                errorButtonsLayout.setVisibility(View.INVISIBLE);
+                basket_button.setVisibility(View.GONE);
+                copy_button.setVisibility(View.GONE);
+                responsesTextView.setVisibility(View.GONE);
+                errorButtonsLayout.setVisibility(View.GONE);
                 AddTransactionLists();
 
                 break;
@@ -907,10 +970,10 @@ public class WorkActivity extends FragmentActivity {
                 imageButtonOther.setImageResource(R.drawable.controller_blue);
                 textTitleView.setText(R.string.title_other);
                 relativeLayout.setBackgroundColor(0xffefeff4);
-                basket_button.setVisibility(View.INVISIBLE);
-                copy_button.setVisibility(View.INVISIBLE);
-                responsesTextView.setVisibility(View.INVISIBLE);
-                errorButtonsLayout.setVisibility(View.INVISIBLE);
+                basket_button.setVisibility(View.GONE);
+                copy_button.setVisibility(View.GONE);
+                responsesTextView.setVisibility(View.GONE);
+                errorButtonsLayout.setVisibility(View.GONE);
                 AddOtherLists();
 
                 break;
@@ -921,8 +984,8 @@ public class WorkActivity extends FragmentActivity {
                 relativeLayout.setBackgroundColor(Color.WHITE);
                 basket_button.setVisibility(View.VISIBLE);
                 copy_button.setVisibility(View.VISIBLE);
-                responsesTextView.setVisibility(View.INVISIBLE);
-                errorButtonsLayout.setVisibility(View.INVISIBLE);
+                responsesTextView.setVisibility(View.GONE);
+                errorButtonsLayout.setVisibility(View.GONE);
                 showConsole();
                 break;
         }
@@ -940,6 +1003,7 @@ public class WorkActivity extends FragmentActivity {
     /*Log*/
     private void Add_TextView(TextView textView){
         textView.setBackgroundColor(Color.WHITE);
+        textView.setTextColor(Color.BLACK);
         textView.setGravity(Gravity.START);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         textView.setFocusable(false);
@@ -971,4 +1035,29 @@ public class WorkActivity extends FragmentActivity {
             }
         });
     }
+
+    public static void setGridViewHeightBasedOnChildren(GridView gridView, int colCount) {
+        ListAdapter listAdapter = gridView.getAdapter();
+        if (listAdapter == null)
+            return;
+
+        int desiredWidth = View.MeasureSpec.makeMeasureSpec(gridView.getWidth(), View.MeasureSpec.UNSPECIFIED);
+        int totalHeight = 0;
+        View view = null;
+        for (int i = 0; i < listAdapter.getCount(); i++) {
+            view = listAdapter.getView(i, view, gridView);
+            if (i == 0)
+                view.setLayoutParams(new ViewGroup.LayoutParams(desiredWidth, LayoutParams.WRAP_CONTENT));
+
+            view.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
+            totalHeight += view.getMeasuredHeight();
+        }
+        ViewGroup.LayoutParams params = gridView.getLayoutParams();
+        //params.height = totalHeight + (gridView.getDividerHeight() * (listAdapter.getCount() - 1));
+        params.height = totalHeight/colCount;
+        gridView.setLayoutParams(params);
+        gridView.requestLayout();
+    }
+
+
 }

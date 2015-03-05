@@ -39,13 +39,27 @@
         android:layout_alignParentRight="true"
         android:visibility="invisible" />
 
-    <ScrollView
+
+    <TextView
+        android:id="@+id/responsesTextView"
+        android:layout_above="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:singleLine="false"
+        android:scrollbars="vertical"
+        android:textColor="#aed21d"
+        android:background="@android:color/black"
+        android:textSize="20sp"
+        android:layout_margin="5px"
+        />
+
+    <com.crittercism.ScrollViewExt
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/scrollView"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/TextTitleView"
-        android:layout_above="@+id/linearLayout"
+        android:layout_above="@+id/responsesTextView"
         android:fillViewport="false">
 
         <LinearLayout android:orientation="vertical"
@@ -56,10 +70,6 @@
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
 
             <LinearLayout
                 android:padding="10sp"
@@ -105,21 +115,9 @@
                     android:background="@android:color/white"
                     />
             </LinearLayout>
-            <TextView
-                android:id="@+id/responsesTextView"
-                android:layout_width="match_parent"
-                android:layout_height="200sp"
-                android:singleLine="false"
-                android:textColor="#aed21d"
-                android:background="@android:color/black"
-                android:textSize="20sp"
-                android:layout_margin="5px"
-                android:visibility="invisible"/>
-
-                </RelativeLayout>
 
         </LinearLayout>
-    </ScrollView>
+    </com.crittercism.ScrollViewExt>
 
     <LinearLayout
         android:baselineAligned="false"
