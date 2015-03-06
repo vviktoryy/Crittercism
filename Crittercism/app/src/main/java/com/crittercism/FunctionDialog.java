@@ -1,8 +1,7 @@
 package com.crittercism;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
@@ -12,6 +11,7 @@ import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 public class FunctionDialog extends DialogFragment implements AdapterView.OnItemClickListener {
     String[] function_items = { "Function A", "Function B", "Function C", "Function D" };
@@ -53,8 +53,16 @@ public class FunctionDialog extends DialogFragment implements AdapterView.OnItem
         ((WorkActivity) context).transArrayStack.add(function_items[position]);
         ((WorkActivity) context).transArrayStack.add("Add Another Function...");
 
+        error_function_list.post(new Runnable()        {
+            public void run()            {
+                ((TextView)error_function_list.getChildAt(error_function_list.getAdapter().getCount()-2)).setTextColor(Color.BLACK);
+                ((TextView)error_function_list.getChildAt(error_function_list.getAdapter().getCount()-1)).setTextColor(Color.GRAY);
+            }
+        });
+
         ((WorkActivity) context).arrayFuncAdapter.notifyDataSetChanged();
-        ((WorkActivity) context).setListViewHeightBasedOnChildren(error_function_list);
+
+        WorkActivity.setListViewHeightBasedOnChildren(error_function_list);
         if (((WorkActivity) context).transArrayStack.size()>2) ((WorkActivity) context).AddToLog("[Error]: Add Another Function...");
         else ((WorkActivity) context).AddToLog("[Error]: Add Function...");
     }

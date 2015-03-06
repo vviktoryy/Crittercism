@@ -46,6 +46,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class WorkActivity extends FragmentActivity implements ScrollViewListener{
@@ -66,14 +67,11 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
     private TextView textTitleView;
     private RelativeLayout relativeLayout;
     private ArrayAdapter arrayAdapter;
-    private ArrayAdapter<String> stringAdapter;
 
     private LinearLayout errorButtonsLayout;
 
     private LinearLayout workLayout;
     private Context context;
-
-    private ScrollViewExt scrollView;
 
     private String[] transArrayPunch = {"Get 100b", "Get 5Kb", "Get 7Mb",
             "Post 100b", "Post 4Kb", "Post 3Mb",
@@ -86,12 +84,9 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
     public ArrayAdapter arrayFuncAdapter;
 
     private String url;
-    private String[] action_modifier;
     private String protocol="http";
     private int connType = 0;
     private int bytes = 1;
-    private int latency =0;
-    private int code = 200;
     private int status;
 
     private String LogString="";
@@ -99,9 +94,6 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
     private TextView responsesTextView;
 
     private ListView listViewStack;
-    private Button clearButton;
-    private Button exceptionButton;
-    private Button crashButton;
     private LogFile logFile;
 
     private String componentsString;
@@ -118,7 +110,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
 
     @Override
     public void onScrollChanged(final ScrollViewExt scrollView, final int x, final int y, int oldx, int oldy) {
-        final View view = (View) scrollView.getChildAt(scrollView.getChildCount() - 1);
+        final View view = scrollView.getChildAt(scrollView.getChildCount() - 1);
         int diff = (view.getBottom() - (scrollView.getHeight() + scrollView.getScrollY()));
 
         // if diff is zero, then the bottom has been reached
@@ -158,7 +150,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
     }
 
     private void setupViews() {
-        scrollView = (ScrollViewExt)findViewById(R.id.scrollView);
+        ScrollViewExt scrollView = (ScrollViewExt) findViewById(R.id.scrollView);
         scrollView.setScrollViewListener(this);
 
         workLayout = (LinearLayout) findViewById(R.id.workLayer);
@@ -220,7 +212,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         });
 
         logFile = new LogFile(context,"LogFile.txt");
-        if (logFile!=null) {LogString = logFile.Read();/*logFile.readFile();*/}
+        if (logFile.file.exists()) {LogString = logFile.Read();/*logFile.readFile();*/}
         else {System.out.println("NOLogFile!");}
 
         copy_button = (ImageButton) findViewById(R.id.CopyButton);
@@ -238,23 +230,24 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
 
         errorButtonsLayout = (LinearLayout) findViewById(R.id.errorButtonsLayout);
 
-        clearButton = (Button) findViewById(R.id.clearButton);
+        Button clearButton = (Button) findViewById(R.id.clearButton);
         buttonEffect(clearButton);
         clearButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 transArrayStack.clear();
                 transArrayStack.add("Add Function...");
+                ((TextView) listViewStack.getChildAt(listViewStack.getAdapter().getCount() - 1)).setTextColor(Color.GRAY);
                 arrayFuncAdapter.notifyDataSetChanged();
                 setListViewHeightBasedOnChildren(listViewStack);
                 AddToLog("[Error]: Clear");
             }
         });
-        exceptionButton = (Button) findViewById(R.id.exceptionButton);
+        Button exceptionButton = (Button) findViewById(R.id.exceptionButton);
         buttonEffect(exceptionButton);
         exceptionButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                for(int i=0; i< transArrayStack.size();i++){
-                    switch (transArrayStack.get(i)){
+                for (int i = 0; i < transArrayStack.size(); i++) {
+                    switch (transArrayStack.get(i)) {
                         case "Function A":
                             funcA();
                             break;
@@ -280,12 +273,12 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
                 }
             }
         });
-        crashButton = (Button) findViewById(R.id.crashButton);
+        Button crashButton = (Button) findViewById(R.id.crashButton);
         buttonEffect(crashButton);
         crashButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                for(int i=0; i< transArrayStack.size();i++){
-                    switch (transArrayStack.get(i)){
+                for (int i = 0; i < transArrayStack.size(); i++) {
+                    switch (transArrayStack.get(i)) {
                         case "Function A":
                             funcA();
                             break;
@@ -311,7 +304,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
             }
         });
 
-        transArrayStack = new ArrayList<String>();
+        transArrayStack = new ArrayList<>();
         transArrayStack.add("Add Function...");
 
     }
@@ -463,29 +456,33 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         }
     }
     private String CreateNetworkAction(){
-        action_modifier = componentsString.split(" ");
+        String[] action_modifier = componentsString.split(" ");
         action_modifier[0] = action_modifier[0].toLowerCase();
 
-        if(action_modifier[0].equals("get") || action_modifier[0].equals("post")){
-            latency = 0;
-            String[] tmp = action_modifier[1].toLowerCase().replace("mb"," 1000000").replace("kb"," 1000").replace("b"," 1").split(" ");
-            bytes = Integer.valueOf(tmp[0]) * Integer.valueOf(tmp[1]);
+        int latency;
+        switch (action_modifier[0]) {
+            case "get":
+            case "post":
+                String[] tmp = action_modifier[1].toLowerCase().replace("mb", " 1000000").replace("kb", " 1000").replace("b", " 1").split(" ");
+                bytes = Integer.valueOf(tmp[0]) * Integer.valueOf(tmp[1]);
 
-            if (action_modifier[0].equals("get")) {
-                url = protocol+"://httpbin.org/bytes/"+bytes;
-            }else {
-                System.out.println(protocol);
-                url = protocol+"://httpbin.org/post";
-            }
-        } else if (action_modifier[0].equals("latency")) {
-            latency = Integer.valueOf(action_modifier[1].toLowerCase().replace("s",""));
-            url = protocol+"://httpbin.org/delay/"+latency;
-            action_modifier[0] = "get";
-        }else if (action_modifier[0].equals("do")) {
-            latency = 0;
-            code = Integer.valueOf(action_modifier[1]);
-            url = protocol+"://httpbin.org/status/"+code;
-            action_modifier[0] = "get";
+                if (action_modifier[0].equals("get"))
+                    url = protocol + "://httpbin.org/bytes/" + bytes;
+                else {
+                    System.out.println(protocol);
+                    url = protocol + "://httpbin.org/post";
+                }
+                break;
+            case "latency":
+                latency = Integer.valueOf(action_modifier[1].toLowerCase().replace("s", ""));
+                url = protocol + "://httpbin.org/delay/" + latency;
+                action_modifier[0] = "get";
+                break;
+            case "do":
+                int code = Integer.valueOf(action_modifier[1]);
+                url = protocol + "://httpbin.org/status/" + code;
+                action_modifier[0] = "get";
+                break;
         }
 
         long bytesRead,bytesSent;
@@ -499,7 +496,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         if (connType==0){//HttpURLConnection
             URL url_=null;
             try {
-                InputStream myInputStream =null;
+                InputStream myInputStream;
                 url_= new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) url_.openConnection();
                 /*conn.setInstanceFollowRedirects(true);
@@ -518,7 +515,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
                     wr.write(buf);
                     wr.flush();
                 }
-                //System.out.println(action_modifier[0]+": "+url);
+
                 status = conn.getResponseCode();
                 if(status >= HttpStatus.SC_BAD_REQUEST)
                     myInputStream = conn.getErrorStream();
@@ -527,8 +524,9 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
                 timeEnd =System.currentTimeMillis();
                 if (action_modifier[0].equals("get")) {
                     BufferedReader rd = new BufferedReader(new InputStreamReader(myInputStream), 4096);
-                    String line = "";
-                    StringBuilder sbResult = new StringBuilder();
+                    String line;
+                    StringBuilder sbResult;
+                    sbResult = new StringBuilder();
                     while ((line = rd.readLine()) != null) {
                         sbResult.append(line);
                     }
@@ -542,7 +540,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
             }
 
         }else {//org.apache.http.client.HttpClient
-            HttpResponse response = null;
+            HttpResponse response;
             HttpClient client = new DefaultHttpClient();
             try {
                 if (action_modifier[0].equals("get")){
@@ -552,7 +550,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
                 } else {
                     HttpPost post = new HttpPost(url);
                     char[] buf = new char[bytes];
-                    StringEntity entity = new StringEntity(buf.toString());
+                    StringEntity entity = new StringEntity(Arrays.toString(buf));
                     post.setEntity(entity);
                     timeBeg =System.currentTimeMillis();
                     response = client.execute(post);
@@ -562,8 +560,9 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
                 if(action_modifier[0].equals("get") && status < HttpStatus.SC_BAD_REQUEST)  {
                     BufferedReader rd = new BufferedReader
                             (new InputStreamReader(response.getEntity().getContent()), 4096);
-                    String line = "";
-                    StringBuilder sbResult =  new StringBuilder();
+                    String line;
+                    StringBuilder sbResult;
+                    sbResult = new StringBuilder();
                     while ((line = rd.readLine()) != null) {
                         sbResult.append(line);
                     }
@@ -650,12 +649,19 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
     private void AddOtherLists() {
         /*UserName*/
         TextView textViewName = new TextView(context);
-        ListView listViewName = new ListView(context);
+        final ListView listViewName = new ListView(context);
 
         String[] transArrayName = {"Set Username: Bob", "Set Username: Jim",
                 "Set Username: Sue", "Check Username"};
         Add_ListView(textViewName, listViewName, transArrayName, "USERNAME:");
-        listViewName.setItemChecked(0, true);
+        //listViewName.setItemChecked(0, true);
+        listViewName.post(new Runnable() {
+            public void run()  {
+                TextView view = (TextView)listViewName.getChildAt(listViewName.getAdapter().getCount()-1);
+                view.setTextColor(Color.BLUE);
+                view.setGravity(Gravity.CENTER_HORIZONTAL);
+            }
+        });
         listViewName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (position) {
@@ -677,11 +683,19 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         });
         /*Metadata*/
         TextView textViewData = new TextView(context);
-        ListView listViewData = new ListView(context);
+        final ListView listViewData = new ListView(context);
 
         String[] transArrayData = {"Set Game Level: 5", "Set Game Level: 30",
                 "Set Game Level: 50", "Check Game Level"};
         Add_ListView(textViewData, listViewData, transArrayData, "METADATA:");
+
+        listViewData.post(new Runnable() {
+            public void run()  {
+                TextView view = (TextView)listViewData.getChildAt(listViewData.getAdapter().getCount()-1);
+                view.setTextColor(Color.BLUE);
+                view.setGravity(Gravity.CENTER_HORIZONTAL);
+            }
+        });
 
         listViewData.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
@@ -730,11 +744,17 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         });
         /*Opt-out status*/
         TextView textViewStatus = new TextView(context);
-        ListView listViewStatus = new ListView(context);
+        final ListView listViewStatus = new ListView(context);
 
         String[] transArrayStatus = {"Opt Out", "Opt In", "Check Opt-Out Status"};
         Add_ListView(textViewStatus, listViewStatus, transArrayStatus, "OPT-OUT STATUS:");
-
+        listViewStatus.post(new Runnable() {
+            public void run()  {
+                TextView view = (TextView)listViewStatus.getChildAt(listViewStatus.getAdapter().getCount()-1);
+                view.setTextColor(Color.BLUE);
+                view.setGravity(Gravity.CENTER_HORIZONTAL);
+            }
+        });
         listViewStatus.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (position) {
@@ -758,13 +778,9 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
     private void Add_TextView(TextView textView, String textText){
         textView.setBackgroundColor(0xffefeff4);
         textView.setGravity(Gravity.START);
-        //textView.setWidth(WindowManager.LayoutParams.MATCH_PARENT);
-        //textView.setHeight(WindowManager.LayoutParams.WRAP_CONTENT);
-        //textView.setHeight(TypedValue.COMPLEX_UNIT_SP, 40);
         textView.setTextColor(Color.GRAY);
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         textView.setFocusable(false);
-        //textView.setId("@+id/TransactionLoginTitle");
         textView.setLayoutParams(new LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
         textView.setDrawingCacheBackgroundColor(Color.GRAY);
@@ -780,6 +796,19 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         listView.setDividerHeight(1);
 
         arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, transArray);
+        listView.setAdapter(arrayAdapter);
+
+        workLayout.addView(listView);
+        setListViewHeightBasedOnChildren(listView);
+    }
+
+    private void Add_ListView1(TextView textView, ListView listView, String[] transArray, String textText){
+        Add_TextView(textView, textText);
+
+        listView.setBackgroundColor(Color.WHITE);
+        listView.setDividerHeight(1);
+
+        arrayAdapter = new ArrayAdapter(this, R.layout.linear_list_item1, transArray);
         listView.setAdapter(arrayAdapter);
 
         workLayout.addView(listView);
@@ -805,7 +834,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         listView.setBackgroundColor(Color.WHITE);
         listView.setDividerHeight(1);
 
-        stringAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_checked, transArray);
+        ArrayAdapter<String> stringAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_checked, transArray);
 
         listView.setAdapter(stringAdapter);
 
@@ -819,7 +848,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         ListView listViewCrash = new ListView(context);
 
         String[] transArrayCrash = {"Uncaught Exception", "Segfault", "Stack Overflow"};
-        Add_ListView(textViewCrash, listViewCrash, transArrayCrash, "FORCE CRASH:");
+        Add_ListView1(textViewCrash, listViewCrash, transArrayCrash, "FORCE CRASH:");
 
         listViewCrash.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -867,7 +896,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         ListView listViewHandle = new ListView(context);
 
         String[] transArrayHandle = {"Index Out Of Bounds", "Log Error"};
-        Add_ListView(textViewHandle, listViewHandle, transArrayHandle, "HANDLE EXCEPTION:");
+        Add_ListView1(textViewHandle, listViewHandle, transArrayHandle, "HANDLE EXCEPTION:");
 
         listViewHandle.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
@@ -895,7 +924,14 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         listViewStack = new ListView(context);
 
         Add_ListView2(textViewStack, listViewStack, transArrayStack, "CUSTOM STACK TRACE:");
-
+        listViewStack.post(new Runnable()        {
+            public void run()            {
+                for(int i=0; i<=listViewStack.getAdapter().getCount()-2;i++){
+                    ((TextView)listViewStack.getChildAt(i)).setTextColor(Color.BLACK);
+                }
+                ((TextView)listViewStack.getChildAt(listViewStack.getAdapter().getCount()-1)).setTextColor(Color.GRAY);
+            }
+        });
         listViewStack.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (((TextView)view).getText().toString()){

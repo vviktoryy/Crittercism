@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/relativeLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -20,24 +21,26 @@
     <ImageButton
         android:layout_width="50dp"
         android:layout_height="40dp"
-        android:gravity="left"
+        android:gravity="start"
         android:scaleType="fitXY"
         android:id="@+id/BasketButton"
         android:src="@drawable/basket"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:contentDescription="" />
 
     <ImageButton
         android:layout_width="50dp"
         android:layout_height="40dp"
-        android:gravity="right"
+        android:gravity="end"
         android:id="@+id/CopyButton"
         android:src="@drawable/mail"
         android:scaleType="fitXY"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:visibility="invisible" />
+        android:visibility="invisible"
+        android:contentDescription="image" />
 
 
     <TextView
@@ -50,7 +53,7 @@
         android:textColor="#aed21d"
         android:background="@android:color/black"
         android:textSize="20sp"
-        android:layout_margin="5px"
+        android:layout_margin="5dp"
         />
 
     <com.crittercism.ScrollViewExt
@@ -74,7 +77,6 @@
             <LinearLayout
                 android:padding="10sp"
                 android:baselineAligned="false"
-                android:layout_centerHorizontal="true"
                 android:background="@android:color/white"
                 android:id="@+id/errorButtonsLayout"
                 android:layout_width="match_parent"
@@ -102,7 +104,7 @@
                     android:gravity="center"
                     android:text="@string/exception"
                     android:background="@android:color/white"
-                    />
+                    tools:ignore="ButtonStyle" />
                 <Button
                     android:id="@+id/crashButton"
                     android:layout_width="0sp"
@@ -113,7 +115,7 @@
                     android:gravity="center"
                     android:text="@string/crash"
                     android:background="@android:color/white"
-                    />
+                    tools:ignore="ButtonStyle" />
             </LinearLayout>
 
         </LinearLayout>
@@ -143,7 +145,8 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:src="@drawable/bug"
-                android:background="#d5d5d5"/>
+                android:background="#d5d5d5"
+                tools:ignore="NestedWeights" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -166,7 +169,8 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:src="@drawable/network"
-                android:background="#d5d5d5"/>
+                android:background="#d5d5d5"
+                tools:ignore="NestedWeights" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -189,7 +193,8 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:src="@drawable/shopping_cart"
-                android:background="#d5d5d5"/>
+                android:background="#d5d5d5"
+                tools:ignore="NestedWeights" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -213,7 +218,8 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:src="@drawable/controller"
-                android:background="#d5d5d5"/>
+                android:background="#d5d5d5"
+                tools:ignore="NestedWeights" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
