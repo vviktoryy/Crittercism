@@ -1,6 +1,7 @@
 package com.crittercism;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -28,7 +29,6 @@ import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import android.app.AlertDialog;
 import android.widget.Toast;
-
 import com.crittercism.app.Crittercism;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -39,6 +39,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -48,6 +49,14 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.crittercism.app.CrittercismConfig;
+import com.squareup.okhttp.FormEncodingBuilder;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 
 public class WorkActivity extends FragmentActivity implements ScrollViewListener{
     private ImageButton imageButtonError;
@@ -78,7 +87,10 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
             "Latency 1s", "Latency 3s", "Latency 10s",
             "Do 202", "Do 404", "Do 500"};
     private String[] transArrayProtocol = {"HTTP", "HTTPS"};
-    private String[] transArrayConnection = {"[HttpURLConnection]","[org.apache.http.client.HttpClient]"};
+    private String[] transArrayConnection = {"[HttpURLConnection]","[org.apache.http.client.HttpClient]","[OkHttpClient]"};
+
+    public static final MediaType MEDIA_TYPE_MARKDOWN
+            = MediaType.parse("text/x-markdown; charset=utf-8");
 
     public List<String> transArrayStack;
     public ArrayAdapter arrayFuncAdapter;
@@ -92,6 +104,8 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
     private String LogString="";
     private TextView logTextView;
     private TextView responsesTextView;
+    private TextView textViewStatus;
+    private Boolean optOutStatus=false;
 
     private ListView listViewStack;
     private LogFile logFile;
@@ -106,6 +120,12 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         setContentView(R.layout.activity_work)  ;
         setupViews();
         setContent(1);
+    }
+
+    @Override
+    protected void onResume(){
+        overridePendingTransition(android.R.anim.fade_in, R.anim.abc_fade_out);
+        super.onResume();
     }
 
     @Override
@@ -433,12 +453,23 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
 
         listViewWeb.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
-                MsgBox("Missing SDK part","No CrittercismConfig.monitorUIWebView: in SDK");
+                //CrittercismConfig config = new CrittercismConfig();
+                //config.monitorUIWebView = true;
+                //Crittercism.enableWithAppID("4ce2d43766d78766a1000013", andConfig: config)
+                StartWebView();
+                //MsgBox("Missing SDK part","No CrittercismConfig.monitorUIWebView: in SDK");
             }
         });
         /*Responses*/
         TextView textViewResponses = new TextView(context);
         Add_TextView(textViewResponses,"RESPONSES:");
+    }
+
+    /*start webView*/
+    private void StartWebView(){
+        Intent intent = new Intent();
+        intent.setClass(this, WebViewActivity.class);
+        startActivity(intent);
     }
 
     /*Connect*/
@@ -492,7 +523,6 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
             bytesRead = 0;                        bytesSent = bytes;
         }
         long timeBeg=0,timeEnd=0;
-
         if (connType==0){//HttpURLConnection
             URL url_=null;
             try {
@@ -539,7 +569,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
                 return null;
             }
 
-        }else {//org.apache.http.client.HttpClient
+        }else if (connType==1) {//org.apache.http.client.HttpClient
             HttpResponse response;
             HttpClient client = new DefaultHttpClient();
             try {
@@ -579,6 +609,49 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
                 }
             }
 
+        } else {//OkHttpClient
+            OkHttpClient client = new OkHttpClient();
+            Response response;
+            Request request;
+            URL url_= null;
+            try { url_ = new URL(url); } catch (MalformedURLException e) {            }
+
+            if (action_modifier[0].equals("get")){
+                request = new Request.Builder()
+                        .url(url)
+                        .build();
+            }else{
+                char[] buf = new char[bytes];
+                RequestBody body = RequestBody.create(MEDIA_TYPE_MARKDOWN, new String(buf));
+                request = new Request.Builder()
+                        .url(url)
+                        .post(body)
+                        .build();
+            }
+
+            try {
+                timeBeg =System.currentTimeMillis();
+                response = client.newCall(request).execute();
+                status = response.code();
+                timeEnd =System.currentTimeMillis();
+
+                if(action_modifier[0].equals("get") && status < HttpStatus.SC_BAD_REQUEST)  {
+                   BufferedReader rd = new BufferedReader
+                            (new InputStreamReader(response.body().byteStream()), 4096);
+                    String line;
+                    StringBuilder sbResult;
+                    sbResult = new StringBuilder();
+                    while ((line = rd.readLine()) != null) {
+                        sbResult.append(line);
+                    }
+                    rd.close();
+                }
+                Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), url_, timeEnd-timeBeg, bytesRead, bytesSent, status, null);
+            } catch (IOException e) {
+                Crittercism.logNetworkRequest(action_modifier[0].toUpperCase(), url_, timeEnd-timeBeg, bytesRead, bytesSent, status, e);
+                System.out.println(action_modifier[0]+": " +e.toString());
+                return null;
+            }
         }
         AddToLog("[Network]: " + componentsString);
         return "(" + status + ") " + url;
@@ -652,16 +725,18 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         final ListView listViewName = new ListView(context);
 
         String[] transArrayName = {"Set Username: Bob", "Set Username: Jim",
-                "Set Username: Sue", "Check Username"};
+                "Set Username: Sue"};
+        /*String[] transArrayName = {"Set Username: Bob", "Set Username: Jim",
+                "Set Username: Sue", "Check Username"};*/
         Add_ListView(textViewName, listViewName, transArrayName, "USERNAME:");
         //listViewName.setItemChecked(0, true);
-        listViewName.post(new Runnable() {
+        /*listViewName.post(new Runnable() {
             public void run()  {
                 TextView view = (TextView)listViewName.getChildAt(listViewName.getAdapter().getCount()-1);
                 view.setTextColor(Color.BLUE);
                 view.setGravity(Gravity.CENTER_HORIZONTAL);
             }
-        });
+        });*/
         listViewName.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (position) {
@@ -686,16 +761,18 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         final ListView listViewData = new ListView(context);
 
         String[] transArrayData = {"Set Game Level: 5", "Set Game Level: 30",
-                "Set Game Level: 50", "Check Game Level"};
+                "Set Game Level: 50"};
+        /*String[] transArrayData = {"Set Game Level: 5", "Set Game Level: 30",
+                "Set Game Level: 50", "Check Game Level"};*/
         Add_ListView(textViewData, listViewData, transArrayData, "METADATA:");
 
-        listViewData.post(new Runnable() {
+        /*listViewData.post(new Runnable() {
             public void run()  {
                 TextView view = (TextView)listViewData.getChildAt(listViewData.getAdapter().getCount()-1);
                 view.setTextColor(Color.BLUE);
                 view.setGravity(Gravity.CENTER_HORIZONTAL);
             }
-        });
+        });*/
 
         listViewData.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
@@ -743,34 +820,36 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
             }
         });
         /*Opt-out status*/
-        TextView textViewStatus = new TextView(context);
+        textViewStatus = new TextView(context);
         final ListView listViewStatus = new ListView(context);
 
-        String[] transArrayStatus = {"Opt Out", "Opt In", "Check Opt-Out Status"};
-        Add_ListView(textViewStatus, listViewStatus, transArrayStatus, "OPT-OUT STATUS:");
-        listViewStatus.post(new Runnable() {
+        String[] transArrayStatus = {"Opt Out", "Opt In"};
+        /*String[] transArrayStatus = {"Opt Out", "Opt In", "Check Opt-Out Status"};*/
+        Add_ListView(textViewStatus, listViewStatus, transArrayStatus, "OPT-OUT STATUS: "+optOutStatus);
+       /* listViewStatus.post(new Runnable() {
             public void run()  {
                 TextView view = (TextView)listViewStatus.getChildAt(listViewStatus.getAdapter().getCount()-1);
                 view.setTextColor(Color.BLUE);
                 view.setGravity(Gravity.CENTER_HORIZONTAL);
             }
-        });
+        });*/
         listViewStatus.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
                 switch (position) {
                     case 0://Opt Out
                         Crittercism.setOptOutStatus(true);        AddToLog("[Other]: Opt Out");
-                        break;
+                        optOutStatus = true;                        break;
                     case 1://Opt In
                         Crittercism.setOptOutStatus(false);       AddToLog("[Other]: Opt In");
-                        break;
-                    case 2://Check Opt-Out Status
+                        optOutStatus = false;                        break;
+                    /*case 2://Check Opt-Out Status
                         AddToLog("[Other]: Check Opt-Out Status");
                         MsgBox("OptOutStatus","is "+Crittercism.getOptOutStatus());
                         // if (Crittercism.getOptOutStatus()) {MsgBox("OptOutStatus","is YES");}
                         // else {MsgBox("OptOutStatus","is NO");}
-                        break;
+                        break;*/
                 }
+                textViewStatus.setText("OPT-OUT STATUS: "+optOutStatus);
             }
         });
     }
@@ -848,7 +927,7 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         ListView listViewCrash = new ListView(context);
 
         String[] transArrayCrash = {"Uncaught Exception", "Segfault", "Stack Overflow"};
-        Add_ListView1(textViewCrash, listViewCrash, transArrayCrash, "FORCE CRASH:");
+        Add_ListView1(textViewCrash, listViewCrash, transArrayCrash, "FORCE JAVA CRASH:");//"FORCE CRASH:"
 
         listViewCrash.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -895,7 +974,8 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
         TextView textViewHandle = new TextView(context);
         ListView listViewHandle = new ListView(context);
 
-        String[] transArrayHandle = {"Index Out Of Bounds", "Log Error"};
+        //String[] transArrayHandle = {"Index Out Of Bounds", "Log Error"};
+        String[] transArrayHandle = {"Index Out Of Bounds", "Input/Output"};
         Add_ListView1(textViewHandle, listViewHandle, transArrayHandle, "HANDLE EXCEPTION:");
 
         listViewHandle.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -911,9 +991,18 @@ public class WorkActivity extends FragmentActivity implements ScrollViewListener
                             Toast.makeText(getApplicationContext(),"Index Out OfBounds", Toast.LENGTH_SHORT).show();
                         }
                         break;
-                    case 1://Log Error
-                        AddToLog("[Error]: Log Error");
+                    case 1://Input/Output //Log Error
+                       /* AddToLog("[Error]: Log Error");
                         MsgBox("Missing SDK part","No logError: in SDK");
+                        break;*/
+                        System.out.println("Crittercism. Logging exception: input/output");
+                        try {
+                            throw new IOException();
+                        } catch (Exception exception) {
+                            Crittercism.logHandledException(exception);
+                            AddToLog("[Error]: Input/Output Exception");
+                            Toast.makeText(getApplicationContext(),"Input/Output Exception", Toast.LENGTH_SHORT).show();
+                        }
                         break;
                 }
                 // Toast.makeText(getApplicationContext(),((TextView) view).getText(), Toast.LENGTH_SHORT).show();

@@ -31,4 +31,8 @@
     <string name="title_activity_function_dialog">FunctionDialog</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_web_view">WebViewActivity</string>
+    <string name="network"><![CDATA[< Network]]></string>
+    <string name="back_button"><![CDATA[<]]></string>
+    <string name="forward_button"><![CDATA[>]]></string>
 </resources>
