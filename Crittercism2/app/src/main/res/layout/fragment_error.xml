@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40sp"
+        android:background="#4381b3"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:focusable="false"
+        android:id="@+id/TextTitleView"
+        android:text="@string/title_error"/>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/scrollView">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:verticalScrollbarPosition="right"
+            android:background="@android:color/white">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#efeff4"
+                android:layout_gravity="start"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:text="FORCE CRASH:"/>
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/ForceCrashListView"
+                android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:dividerHeight="1sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#efeff4"
+                android:layout_gravity="start"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:text="HANDLE EXCEPTION:"/>
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/HandleExceptionListView"
+                android:dividerHeight="1sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#efeff4"
+                android:layout_gravity="start"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:text="CUSTOM STACK TRACE:"/>
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/CustomStackListView"
+                android:dividerHeight="1sp"/>
+
+            <LinearLayout
+                android:padding="10sp"
+                android:baselineAligned="false"
+                android:id="@+id/errorButtonsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/clearButton"
+                    android:layout_width="0sp"
+                    android:layout_height="wrap_content"
+                    android:textColor="#0000FF"
+                    android:textSize="20sp"
+                    android:layout_weight="0.33"
+                    android:gravity="center"
+                    android:text="@string/clear"
+                    android:background="@android:color/transparent"
+                    />
+                <Button
+                    android:id="@+id/exceptionButton"
+                    android:layout_width="0sp"
+                    android:layout_height="wrap_content"
+                    android:textColor="#0000FF"
+                    android:textSize="20sp"
+                    android:layout_weight="0.33"
+                    android:gravity="center"
+                    android:text="@string/exception"
+                    android:background="@android:color/transparent"/>
+                <Button
+                    android:id="@+id/crashButton"
+                    android:layout_width="0sp"
+                    android:layout_height="wrap_content"
+                    android:textColor="#0000FF"
+                    android:textSize="20sp"
+                    android:layout_weight="0.33"
+                    android:gravity="center"
+                    android:text="@string/crash"
+                    android:background="@android:color/transparent"/>
+            </LinearLayout>
+        </LinearLayout>
+
+    </ScrollView>
+</LinearLayout>

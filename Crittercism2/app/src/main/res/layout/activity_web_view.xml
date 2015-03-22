@@ -1,0 +1,65 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.crittercism.WebViewActivity">
+
+    <RelativeLayout
+        android:id="@+id/networkLayout"
+        android:background="#4381b3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/networkButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textColor="#55ccff"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:text="@string/network"
+            android:background="@android:color/transparent"
+            />
+    </RelativeLayout>
+
+    <WebView
+        android:id="@+id/webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/networkLayout"
+        android:layout_above="@+id/webButtonsLayout"
+        />
+
+    <RelativeLayout
+        android:id="@+id/webButtonsLayout"
+        android:background="#d5d5d5"
+        android:layout_width="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:text="@string/back_button"
+            android:background="@android:color/transparent"
+            android:enabled="false"
+            />
+        <Button
+            android:id="@+id/forwardButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:text="@string/forward_button"
+            android:layout_alignParentRight="true"
+            android:background="@android:color/transparent"
+            android:enabled="false"
+            />
+    </RelativeLayout>
+</RelativeLayout>
+

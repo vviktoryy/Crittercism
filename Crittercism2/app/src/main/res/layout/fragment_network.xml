@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40sp"
+        android:background="#4381b3"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:focusable="false"
+        android:id="@+id/TextTitleView"
+        android:text="@string/title_transactions"/>
+    <com.crittercism.ScrollViewExt
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/scrollView"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/TextTitleView"
+        android:fillViewport="false">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:verticalScrollbarPosition="right"
+            android:background="@android:color/white">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#efeff4"
+                android:layout_gravity="start"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:text="CHOOSE CONNECTION TYPE:"/>
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/ConnTypeListView"
+                android:scrollbarAlwaysDrawVerticalTrack="true"
+                android:dividerHeight="1sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#efeff4"
+                android:layout_gravity="start"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:text="CHOOSE PROTOCOL:"/>
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/ProtocolListView"
+                android:dividerHeight="1sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#efeff4"
+                android:layout_gravity="start"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:text="PUNCH IT:"/>
+            <GridView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/PunchListView"
+                android:gravity="center"
+                android:numColumns="3"
+                android:background="@android:color/white"
+                android:dividerHeight="1sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#efeff4"
+                android:layout_gravity="start"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:text="WEB VIEWS:"/>
+            <ListView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/WebViewListView"
+                android:dividerHeight="1sp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#efeff4"
+                android:layout_gravity="start"
+                android:textColor="@android:color/darker_gray"
+                android:textSize="20sp"
+                android:focusable="false"
+                android:text="RESPONSES:"/>
+
+        </LinearLayout>
+    </com.crittercism.ScrollViewExt>
+
+    <TextView
+        android:id="@+id/responsesTextView"
+        android:layout_above="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:singleLine="false"
+        android:scrollbars="vertical"
+        android:textColor="#aed21d"
+        android:background="@android:color/black"
+        android:textSize="20sp"
+        android:layout_below="@+id/scrollView"
+        android:layout_margin="5dp" />
+</RelativeLayout>
