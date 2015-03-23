@@ -4,10 +4,9 @@ import android.app.AlertDialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewPager;
 import android.view.View;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+
 import android.view.ViewGroup;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -16,6 +15,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.crittercism.app.Crittercism;
+import com.crittercism.fragments.FragmentLog;
+import com.crittercism.ui_utils.TabPagerAdapter;
+import com.crittercism.utils.LogFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,22 +37,35 @@ public class WorkActivity extends FragmentActivity {
 
     public LogFile logFile;
     public String LogString="";
-    List<String> transArrayStack;
-    int connType=0;
-    String protocol="http";
+    public FragmentLog log;
+    public List<String> transArrayStack;
     public String ResponsesString="";
+    public int connType;
+    public String protocol = "http";
+
+    ViewPager Tab;
+    TabPagerAdapter TabAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Crittercism.initialize(getApplicationContext(), "54e5d8ac51de5e9f042edbd1");
         setContentView(R.layout.activity_work);
-
         setupViews();
-        setContent(1);
     }
 
     private void setupViews() {
+        TabAdapter = new TabPagerAdapter(getSupportFragmentManager());
+        Tab = (ViewPager)findViewById(R.id.pager);
+        Tab.setOnPageChangeListener(
+                new ViewPager.SimpleOnPageChangeListener() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        setMenuSelect(position);
+                    }
+                });
+        Tab.setAdapter(TabAdapter);
+
         transArrayStack = new ArrayList<>();
         transArrayStack.add("Add Function...");
 
@@ -62,7 +77,7 @@ public class WorkActivity extends FragmentActivity {
         imageButtonError.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setContent(1);
+                Tab.setCurrentItem(0);
             }
         });
         textViewError = (TextView) findViewById(R.id.txtError);
@@ -71,7 +86,7 @@ public class WorkActivity extends FragmentActivity {
         imageButtonNetWork.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setContent(2);
+                Tab.setCurrentItem(1);
             }
         });
         textViewNetWork = (TextView) findViewById(R.id.txtNetWork);
@@ -80,7 +95,7 @@ public class WorkActivity extends FragmentActivity {
         imageButtonTransaction.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setContent(3);
+                Tab.setCurrentItem(2);
             }
         });
         textViewTransaction = (TextView) findViewById(R.id.txtTransaction);
@@ -89,7 +104,7 @@ public class WorkActivity extends FragmentActivity {
         imageButtonOther.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setContent(4);
+                Tab.setCurrentItem(3);
             }
         });
         textViewOther = (TextView) findViewById(R.id.txtOther);
@@ -98,14 +113,15 @@ public class WorkActivity extends FragmentActivity {
         imageButtonConsole.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setContent(5);
+                Tab.setCurrentItem(4);
             }
         });
         textViewConsole = (TextView) findViewById(R.id.txtConsole);
+        setMenuSelect(0);
+
     }
 
-    private void setContent(int id) {
-        Fragment fr;
+    private void setMenuSelect(int id) {
 
         textViewError.setTextColor(Color.GRAY);
         textViewConsole.setTextColor(Color.GRAY);
@@ -120,42 +136,34 @@ public class WorkActivity extends FragmentActivity {
         imageButtonTransaction.setImageResource(R.drawable.shopping_cart);
 
         switch (id) {
-            case 1:
+            case 0:
                 textViewError.setTextColor(0xff007aff);
                 imageButtonError.setImageResource(R.drawable.bug_blue);
-                fr = new FragmentError();
                 break;
-            case 2:
+            case 1:
                 textViewNetWork.setTextColor(0xff007aff);
                 imageButtonNetWork.setImageResource(R.drawable.network_blue);
-                fr = new FragmentNetwork();
                 break;
-            case 3:
+            case 2:
                 textViewTransaction.setTextColor(0xff007aff);
                 imageButtonTransaction.setImageResource(R.drawable.shopping_cart_blue);
-                fr = new com.crittercism.FragmentTransaction();
                 break;
-            case 4:
+            case 3:
                 textViewOther.setTextColor(0xff007aff);
                 imageButtonOther.setImageResource(R.drawable.controller_blue);
-                fr = new FragmentOther();
                 break;
-            default:
+            case 4:
                 textViewConsole.setTextColor(0xff007aff);
                 imageButtonConsole.setImageResource(R.drawable.glasses_blue);
-                fr = new FragmentLog();
+                break;
         }
-
-        FragmentManager fm = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fm.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_place, fr);
-        fragmentTransaction.commit();
     }
 
     public void AddToLog(String addString){
         if (LogString.length()>0){  LogString+="\n"+addString;
         } else {            LogString=addString;        }
         if (logFile!=null) logFile.Write(LogString);
+        if (log.logText!=null) log.logText.setText(LogString);
     }
 
     public void MsgBox(String title, String message){

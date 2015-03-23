@@ -1,4 +1,4 @@
-package com.crittercism;
+package com.crittercism.ui_utils;
 
 public interface ScrollViewListener {
     void onScrollChanged(ScrollViewExt scrollView,

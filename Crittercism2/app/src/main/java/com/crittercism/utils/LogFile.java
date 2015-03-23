@@ -1,4 +1,4 @@
-package com.crittercism;
+package com.crittercism.utils;
 
 import android.content.Context;
 import java.io.File;
@@ -11,7 +11,7 @@ public class LogFile {
     public File file;
     public Context context;
 
-    LogFile(Context context_, String LogName_){
+    public LogFile(Context context_, String LogName_){
         context = context_;
         LogName = LogName_;
         file = new File(context.getFilesDir(), LogName);

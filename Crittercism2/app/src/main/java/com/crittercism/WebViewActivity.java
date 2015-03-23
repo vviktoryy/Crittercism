@@ -1,8 +1,6 @@
 package com.crittercism;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -17,7 +15,6 @@ public class WebViewActivity extends Activity {
     private WebView webview;
     private Button forwardButton;
     private Button backButton;
-    ProgressDialog pd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,13 +25,8 @@ public class WebViewActivity extends Activity {
 
     public void setView(){
         webview = (WebView) findViewById(R.id.webview);
-        webview.getSettings().setJavaScriptEnabled(true);
         webview.loadUrl("http://www.google.com/");
         webview.setWebViewClient(new WebViewClient());
-
-        //pd = ProgressDialog.show(WebViewActivity.this, "Progress Dialog", "Loading...");
-
-        //webview.setWebViewClient(new WebClient());
 
         webview.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -70,16 +62,6 @@ public class WebViewActivity extends Activity {
             }
         });
     }
-
-   /* class WebClient extends WebViewClient {  //Inner class
-        @Override
-        public void onPageFinished(WebView view, String url) {
-            super.onPageFinished(view, url);
-            setViewButtons();
-            if(pd.isShowing()) pd.dismiss();
-        }
-
-    }*/
 
     private void setViewButtons(){
         if (webview.canGoBack()){

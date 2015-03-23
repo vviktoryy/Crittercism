@@ -11,14 +11,15 @@
         android:gravity="center"
         android:focusable="false"
         android:id="@+id/TextTitleView"
-        android:text="@string/title_transactions"/>
-    <com.crittercism.ScrollViewExt
+        android:text="@string/title_network"/>
+    <com.crittercism.ui_utils.ScrollViewExt
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="200dp"
         android:id="@+id/scrollView"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/TextTitleView"
-        android:fillViewport="false">
+        android:fillViewport="false"
+        android:layout_above="@+id/responsesScrollView">
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
@@ -98,18 +99,23 @@
                 android:focusable="false"
                 android:text="RESPONSES:"/>
         </LinearLayout>
-    </com.crittercism.ScrollViewExt>
+    </com.crittercism.ui_utils.ScrollViewExt>
 
-    <TextView
-        android:id="@+id/responsesTextView"
-        android:layout_above="@+id/linearLayout"
+    <ScrollView
+        android:orientation="vertical"
         android:layout_width="match_parent"
+        android:id="@+id/responsesScrollView"
         android:layout_height="0dp"
-        android:singleLine="false"
-        android:scrollbars="vertical"
-        android:textColor="#aed21d"
         android:background="@android:color/black"
-        android:textSize="20sp"
-        android:layout_below="@+id/scrollView"
-        android:layout_margin="5dp" />
+        android:layout_alignParentBottom="true"
+        android:verticalScrollbarPosition="right">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/responsesTextView"
+            android:singleLine="false"
+            android:textColor="#aed21d"
+            android:background="@android:color/black"
+            android:textSize="20sp"/>
+    </ScrollView>
 </RelativeLayout>

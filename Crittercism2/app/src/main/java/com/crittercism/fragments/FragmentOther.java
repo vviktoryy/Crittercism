@@ -1,6 +1,6 @@
-package com.crittercism;
+package com.crittercism.fragments;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,9 +9,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-
+import com.crittercism.R;
+import com.crittercism.WorkActivity;
 import com.crittercism.app.Crittercism;
-
 import org.json.JSONObject;
 
 public class FragmentOther extends Fragment {
@@ -39,7 +39,7 @@ public class FragmentOther extends Fragment {
                 "Set Username: Sue"};
         ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
@@ -61,7 +61,7 @@ public class FragmentOther extends Fragment {
         String[] transArray = {"Set Game Level: 5", "Set Game Level: 30","Set Game Level: 50"};
         ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
@@ -87,7 +87,7 @@ public class FragmentOther extends Fragment {
         String[] transArray = {"Leave: 'hello world'", "Leave: 'abc'", "Leave: '123'"};
         ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
@@ -110,7 +110,7 @@ public class FragmentOther extends Fragment {
         String[] transArray = {"Opt Out", "Opt In"};
         ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {

@@ -1,4 +1,4 @@
-package com.crittercism;
+package com.crittercism.ui_utils;
 
 import android.content.Context;
 import android.util.AttributeSet;

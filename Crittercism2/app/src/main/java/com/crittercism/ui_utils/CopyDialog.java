@@ -1,4 +1,4 @@
-package com.crittercism;
+package com.crittercism.ui_utils;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -15,6 +15,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.crittercism.R;
 
 public class CopyDialog extends DialogFragment implements AdapterView.OnItemClickListener{
     String[] copy_items = { "Mail", "Copy" };

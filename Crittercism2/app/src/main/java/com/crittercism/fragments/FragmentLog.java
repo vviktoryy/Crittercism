@@ -1,6 +1,6 @@
-package com.crittercism;
+package com.crittercism.fragments;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
@@ -8,10 +8,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.crittercism.R;
+import com.crittercism.WorkActivity;
+import com.crittercism.ui_utils.CopyDialog;
+
 public class FragmentLog extends Fragment {
     WorkActivity act;
     View v;
-    TextView logText;
+    public TextView logText;
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -19,6 +23,7 @@ public class FragmentLog extends Fragment {
         v = inflater.inflate(R.layout.fragment_log, container, false);
 
         logText = (TextView) v.findViewById(R.id.LogText);
+        act.log = this;
 
          v.findViewById(R.id.BasketButton).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -37,12 +42,8 @@ public class FragmentLog extends Fragment {
             }
         });
 
-        ShowLog();
+        logText.setText(act.LogString);
 
         return v;
-    }
-
-    private void ShowLog(){
-        logText.setText(act.LogString);
     }
 }

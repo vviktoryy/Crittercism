@@ -1,6 +1,6 @@
-package com.crittercism;
+package com.crittercism.fragments;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -15,17 +15,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crittercism.R;
+import com.crittercism.WorkActivity;
 import com.crittercism.app.Crittercism;
+import com.crittercism.ui_utils.FunctionDialog;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FragmentError extends Fragment {
-    WorkActivity act;
+    public WorkActivity act;
     View v;
     ListView listViewStack;
-    ArrayAdapter arrayFuncAdapter;
+    public ArrayAdapter arrayFuncAdapter;
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -46,7 +47,7 @@ public class FragmentError extends Fragment {
         String[] transArray = {"Uncaught Exception", "Segfault", "Stack Overflow"};
         ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -74,7 +75,7 @@ public class FragmentError extends Fragment {
         String[] transArray = {"Index Out Of Bounds", "Input/Output"};
         ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
@@ -109,7 +110,7 @@ public class FragmentError extends Fragment {
 
         arrayFuncAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, act.transArrayStack);
         listViewStack.setAdapter(arrayFuncAdapter);
-        act.setListViewHeightBasedOnChildren(listViewStack);
+        WorkActivity.setListViewHeightBasedOnChildren(listViewStack);
         listViewStack.post(new Runnable()        {
             public void run()            {
                 for(int i=0; i<=listViewStack.getAdapter().getCount()-2;i++){
@@ -150,7 +151,7 @@ public class FragmentError extends Fragment {
                 act.transArrayStack.add("Add Function...");
                 ((TextView) listViewStack.getChildAt(listViewStack.getAdapter().getCount() - 1)).setTextColor(Color.GRAY);
                 arrayFuncAdapter.notifyDataSetChanged();
-                act.setListViewHeightBasedOnChildren(listViewStack);
+                WorkActivity.setListViewHeightBasedOnChildren(listViewStack);
                 act.AddToLog("[Error]: Clear");
             }
         });
@@ -197,6 +198,7 @@ public class FragmentError extends Fragment {
                         } catch (Exception exception) {
                             Crittercism.logHandledException(exception);
                             act.AddToLog("[Error]: Exception");
+                            Toast.makeText(getActivity(),"Exception", Toast.LENGTH_SHORT).show();
                         }
                     }
             }

@@ -1,4 +1,4 @@
-package com.crittercism;
+package com.crittercism.ui_utils;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -11,6 +11,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.crittercism.fragments.FragmentError;
+import com.crittercism.R;
+import com.crittercism.WorkActivity;
 
 public class FunctionDialog extends DialogFragment implements AdapterView.OnItemClickListener {
     String[] function_items = { "Function A", "Function B", "Function C", "Function D" };

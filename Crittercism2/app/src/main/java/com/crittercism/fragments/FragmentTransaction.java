@@ -1,6 +1,6 @@
-package com.crittercism;
+package com.crittercism.fragments;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,6 +8,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import com.crittercism.R;
+import com.crittercism.WorkActivity;
 import com.crittercism.app.Crittercism;
 
 public class FragmentTransaction extends Fragment {
@@ -38,7 +41,7 @@ public class FragmentTransaction extends Fragment {
 
         ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setContentDescription(TransactionName);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

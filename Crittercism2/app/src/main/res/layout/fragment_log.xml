@@ -40,11 +40,11 @@
         android:layout_alignParentRight="true"
         android:contentDescription="@string/image" />
 
-        <LinearLayout
+        <ScrollView
             android:layout_below="@+id/TextTitleView"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:verticalScrollbarPosition="right">
             <TextView
                 android:layout_width="match_parent"
@@ -54,6 +54,6 @@
                 android:textSize="20sp"
                 android:id="@+id/LogText"
                 android:focusable="false"/>
-        </LinearLayout>
+        </ScrollView>
 
 </RelativeLayout>

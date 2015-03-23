@@ -1,6 +1,6 @@
-package com.crittercism;
+package com.crittercism.fragments;
 
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -14,15 +14,27 @@ import android.widget.CheckedTextView;
 import android.widget.GridView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+
+import com.crittercism.R;
+import com.crittercism.WebViewActivity;
+import com.crittercism.WorkActivity;
 import com.crittercism.app.Crittercism;
+import com.crittercism.ui_utils.ScrollViewExt;
+import com.crittercism.ui_utils.ScrollViewListener;
+import com.crittercism.utils.HttpConnection;
+
 import java.net.URL;
 
 
-public class FragmentNetwork extends Fragment implements ScrollViewListener{
+public class FragmentNetwork extends Fragment implements ScrollViewListener {
     WorkActivity act;
     View v;
     TextView responsesTextView;
+    ScrollView responsesScrollView;
+    ScrollViewExt scrollView;
+
     private String[] transArrayPunch = {"Get 100b", "Get 5Kb", "Get 7Mb",
             "Post 100b", "Post 4Kb", "Post 3Mb",
             "Latency 1s", "Latency 3s", "Latency 10s",
@@ -35,8 +47,11 @@ public class FragmentNetwork extends Fragment implements ScrollViewListener{
         act = (WorkActivity) getActivity();
         v = inflater.inflate(R.layout.fragment_network, container, false);
         context = this;
+        responsesScrollView = (ScrollView)v.findViewById(R.id.responsesScrollView);
         responsesTextView = (TextView)v.findViewById(R.id.responsesTextView);
         responsesTextView.setText(act.ResponsesString);
+        scrollView = (ScrollViewExt)v.findViewById(R.id.scrollView);
+        scrollView.setScrollViewListener(this);
         AddConnType();
         AddProtocols();
         AddPunch();
@@ -50,38 +65,36 @@ public class FragmentNetwork extends Fragment implements ScrollViewListener{
         final View view = scrollView.getChildAt(scrollView.getChildCount() - 1);
         int diff = (view.getBottom() - (scrollView.getHeight() + scrollView.getScrollY()));
 
+        final int height = 250;
+        final int timeMls = 300;
+
         // if diff is zero, then the bottom has been reached
         if (diff == 0) {
-            if (responsesTextView.getVisibility() == View.VISIBLE){
-                final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) responsesTextView.getLayoutParams();
-                if (params.height < 10) {
-                    Animation a = new Animation() {
-                        @Override
-                        protected void applyTransformation(float interpolatedTime, Transformation t) {
-                            params.height = (int) (200 * interpolatedTime);
-                            responsesTextView.setLayoutParams(params);
-                            scrollView.scrollTo(x, 10000);
-                        }
-                    };
-                    a.setDuration(300); // in ms
-                    responsesTextView.startAnimation(a);
-
-                }
+            final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) responsesScrollView.getLayoutParams();
+            if (params.height < 10) {
+                Animation a = new Animation() {
+                    @Override
+                    protected void applyTransformation(float interpolatedTime, Transformation t) {
+                        params.height = (int) (height * interpolatedTime);
+                        responsesScrollView.setLayoutParams(params);
+                        scrollView.scrollTo(x, 10000);
+                    }
+                };
+                a.setDuration(timeMls); // in ms
+                responsesScrollView.startAnimation(a);
             }
         }else{
-            if (responsesTextView.getVisibility() == View.VISIBLE){
-                final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) responsesTextView.getLayoutParams();
-                if (params.height > 190) {
-                    Animation a = new Animation() {
-                        @Override
-                        protected void applyTransformation(float interpolatedTime, Transformation t) {
-                            params.height = (int) (200 - 200 * interpolatedTime);
-                            responsesTextView.setLayoutParams(params);
-                        }
-                    };
-                    a.setDuration(300); // in ms
-                    responsesTextView.startAnimation(a);
-                }
+            final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) responsesScrollView.getLayoutParams();
+            if (params.height > height - 10) {
+                Animation a = new Animation() {
+                    @Override
+                    protected void applyTransformation(float interpolatedTime, Transformation t) {
+                        params.height = (int) (height - height * interpolatedTime);
+                        responsesScrollView.setLayoutParams(params);
+                    }
+                };
+                a.setDuration(timeMls); // in ms
+                responsesScrollView.startAnimation(a);
             }
         }
     }
@@ -92,7 +105,7 @@ public class FragmentNetwork extends Fragment implements ScrollViewListener{
         ArrayAdapter<String> stringAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_checked, transArray);
         listView.setAdapter(stringAdapter);
 
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setItemsCanFocus(false);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
@@ -111,7 +124,7 @@ public class FragmentNetwork extends Fragment implements ScrollViewListener{
         ArrayAdapter<String> stringAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_checked, transArray);
         listView.setAdapter(stringAdapter);
 
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setItemsCanFocus(false);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
@@ -136,7 +149,7 @@ public class FragmentNetwork extends Fragment implements ScrollViewListener{
         ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), R.layout.linear_list_item, transArrayPunch);
         gridView.setAdapter(arrayAdapter);
 
-        act.setGridViewHeightBasedOnChildren(gridView, 3);
+        WorkActivity.setGridViewHeightBasedOnChildren(gridView, 3);
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,int position, long id) {
@@ -153,7 +166,7 @@ public class FragmentNetwork extends Fragment implements ScrollViewListener{
         ArrayAdapter arrayAdapter = new ArrayAdapter(getActivity(), android.R.layout.simple_list_item_1, transArray);
         listView.setAdapter(arrayAdapter);
 
-        act.setListViewHeightBasedOnChildren(listView);
+        WorkActivity.setListViewHeightBasedOnChildren(listView);
 
         listView.setItemsCanFocus(false);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
